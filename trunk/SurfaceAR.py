@@ -6,6 +6,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import AR
 import Surface
+from Marker import Marker,NestedMarker
 import numpy
 import numpy.random as random
 
@@ -119,30 +120,8 @@ class MarkerDisplayFactory:
         if name in self.classMap.keys():
             return self.classMap[name](marker)
         return self.default(marker)
-        
 
-class Marker:
-    def __init__(self,marker):
-        self.marker = marker
-        mvmat = numpy.array(marker['mvmat']).reshape(4,4)
-        mvmat = numpy.mat(mvmat.transpose())
-        self.mvmat = mvmat
-        pos = numpy.mat([0,0,0,1])
-        pos = mvmat*pos.T
-        self.point4 = pos.T
-        self.point3 = numpy.resize(pos,3)
-        #print pos,self.point3
-    def __getitem__(self,key):
-        return self.marker[key]
-    def GetName(self):
-        return self['name'].lower()
-    def GetMV(self):
-        return self.mvmat
-    def GetPoint3(self):
-        return self.point3
-    def GetPoint4(self):
-        return self.point4
-    
+        
 class SurfaceAR:
     cp = numpy.array( [ [ [0,0,0],
                           [.3333,0,0],
