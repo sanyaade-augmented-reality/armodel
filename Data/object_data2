@@ -1,5 +1,5 @@
 #the number of patterns to be recognized
-2
+3
 
 #pattern 1
 Hiro
@@ -12,3 +12,10 @@ Kanji
 /Users/dogwynn/AR/Data/patt.kanji
 40.0
 0.0 0.0
+
+#pattern 3
+Nested
+/Users/dogwynn/AR/Data/test.patt
+40.0
+0.0 0.0
+

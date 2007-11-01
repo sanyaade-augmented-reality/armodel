@@ -553,6 +553,8 @@ class Canvas3D(Widget,Lighted,Camera,Trackball):
         self.actors = []
         self.zoom=1
         self.translate=[0,0,0]
+    def AddActor(self,actor):
+        self.actors.append(actor)
     def Reset(self):
         self.StartLocal()
         self.ResetPosition()
