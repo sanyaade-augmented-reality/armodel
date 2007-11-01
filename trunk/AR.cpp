@@ -395,6 +395,40 @@ private:
     }
   }
 
+  static int drawSingle() {
+    // Draw Python single marker loops
+    List single(Library["singleLoops"]);
+    for(int i=0;i<single.size();i++) {
+      Callable f(single[i]);
+      try {
+        f.apply(noarg);
+      } catch  (Exception &e){
+        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
+        PyErr_Print();
+        //e.clear();
+        return 0;
+      }
+    }
+    return 1;
+  }
+
+  static int drawMulti() {
+    // Draw Python multi loop
+    List mloop(Library["multiLoops"]);
+    for(int i=0;i<mloop.size();i++) {
+      Callable f(mloop[i]);
+      try{
+        f.apply(noarg);
+      } catch  (Exception &e){
+        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
+        PyErr_Print();
+        //e.clear();
+        return 0;
+      }
+    }
+    return 1;
+  }
+
   static void MainLoop() {
     int i,j,k;
     if( (imageData = (ARUint8 *)arVideoGetImage()) == NULL ) {
@@ -425,44 +459,15 @@ private:
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    ARMultiMarkerInfoT *multi = tracker.GetMulti();
-    if (tracker.GetMultiErr() < 0) {
-      argSwapBuffers();
-      return;
-    }
-    if(tracker.GetMultiErr() > 100.0 ) {
+    //ARMultiMarkerInfoT *multi = tracker.GetMulti();
+    if ((tracker.GetMultiErr() < 0) || (tracker.GetMultiErr() > 100.0 )) {
+      drawSingle();
       argSwapBuffers();
       return;
     }
 
-    // Draw Python multi loop
-    List mloop(Library["multiLoops"]);
-    for(i=0;i<mloop.size();i++) {
-      Callable f(mloop[i]);
-      try{
-        f.apply(noarg);
-      } catch  (Exception &e){
-        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
-        PyErr_Print();
-        //e.clear();
-        return;
-      }
-    }
-
-    // Draw Python single marker loops
-    List single(Library["singleLoops"]);
-    for(i=0;i<single.size();i++) {
-      Callable f(single[i]);
-       try {
-        f.apply(noarg);
-       } catch  (Exception &e){
-         std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
-         PyErr_Print();
-         //e.clear();
-         return;
-       }
-    }
-      
+    drawMulti();
+    drawSingle();
 
     glDisable(GL_DEPTH_TEST);
     argSwapBuffers();
