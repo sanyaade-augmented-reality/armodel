@@ -18,7 +18,9 @@ class SurfaceGroup:
 class DisplayObject:
     __mvArray = None
     __mvMatrix = None
-    def Draw(self):
+    def __init__(self,*a,**kw):
+        pass
+    def Draw(self,*a,**kw):
         pass
     __lightRack = None
     def LightRack(self):
@@ -33,10 +35,16 @@ class DisplayObject:
         pass
     def GetMV(self):
         return self.__mvArray,self.__mvMatrix
+    def GetMvMat(self):
+        return self.__mvMatrix
     def SetMV(self,mvmat):
         # mvmat == (16,1) OpenGL model-view matrix
         self.__mvArray = numpy.array(mvmat).reshape(4,4).transpose()
         self.__mvMatrix = numpy.mat(self.__mvArray)
+    def GetPointTransform(self,point4):
+        mvMatrix = self.GetMvMat()
+        mvinv = mvMatrix.I
+        return (mvinv*point4.T).T
     def FindNearest(self,*a,**kw):
         pass
     def MoveHighlight(self,*a,**kw):
