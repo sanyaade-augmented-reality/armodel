@@ -18,6 +18,17 @@ def binary(n):
     return s,a
         
 import leven
+
+HTMLBP = """
+<html>
+  <body>
+    <table cellspacing="60">
+      %s
+    </table>
+  </body>
+</html>
+"""
+
 class NestedMarkerCreator:
     similarity = 1
     size = 4
@@ -36,7 +47,7 @@ class NestedMarkerCreator:
         self.__dict__.update(options.__dict__)
         self.__dict__.update(kw)
         self.randomIntegers = []
-    def similar(self,value,values):
+    def oldsimilar(self,value,values):
         if value in values: return 1
         testpatt,array = binary(value)
         minDistance = 4
@@ -63,6 +74,18 @@ class NestedMarkerCreator:
                     if self.verbose:
                         print 'XXX --> TOO SIMILAR! RESETTING!'
                     return 1
+    def similar(self,value,values):
+        if value in values: return 1
+        newPatt,newArray = binary(value)
+        for v in values:
+            testPatt,testArray = binary(v)
+            angle = 0
+            for i in range(3):
+                testArray = numpy.rot90(testArray)
+                angle+=90
+                if (newArray == testArray).all():
+                    print 'Found match! Angle:',angle
+                    return 1
     def Generate(self,**kw):
         self.__dict__.update(kw)
         # create directory if it doesn't exist
@@ -79,6 +102,7 @@ class NestedMarkerCreator:
         blockw = pwidth/4
         randints = []
         randints.extend(self.randomIntegers)
+        tableRows = [[]]
         for i in range(4):
             l1.append([])
             for j in range(4):
@@ -103,7 +127,8 @@ class NestedMarkerCreator:
                 if random.random() <= .5: rand = 2**16-1-rand
                 if rand in randints: #self.similar(rand,randints):
                     rand = 2**16-1-rand
-                while rand in randints: #self.similar(rand,randints):
+                #while rand in randints: #self.similar(rand,randints):
+                while self.similar(rand,randints):
                     for v in random.random_integers(1,15,size=3):
                         flip = 1<<v
                         if not flip&rand:
@@ -129,7 +154,13 @@ class NestedMarkerCreator:
                         if array[k][l]:
                             draw.rectangle(xy,fill='white')
                 imfname = 'test.L1.%s%s.gif'%(i,j)
-                im.save(imfname)
+                lastRow = tableRows[-1]
+                if len(lastRow) < 2:
+                    lastRow.append(imfname)
+                else:
+                    tableRows.append([imfname])
+                imLarge = im.resize((227,227))
+                imLarge.save(imfname)
                 stringPatt = self.genText(patt,4)
                 spfname = 'test.L1.%s%s.patt'%(i,j)
                 f = open(spfname,'w')
@@ -159,8 +190,14 @@ class NestedMarkerCreator:
                 im.paste(patts[2]['imageObject'],(bd+ws,bd+ws+pwidth+2*ws))
                 im.paste(patts[3]['imageObject'],(bd+ws+pwidth+2*ws,
                                                   bd+ws+pwidth+2*ws))
+                lastRow = tableRows[-1]
                 fname = 'test.L2.%s%s.gif'%(i,j)
-                im.save(fname)
+                if len(lastRow) < 2:
+                    lastRow.append(fname)
+                else:
+                    tableRows.append([fname])
+                imLarge = im.resize((227,227))
+                imLarge.save(fname)
                 spname = 'test.L2.%s%s.patt'%(i,j)
                 # crop the border, resize to 16,16
                 pim = im.crop((bd,bd,imwidth-bd,
@@ -184,7 +221,20 @@ class NestedMarkerCreator:
                                'imageObject':im,
                                'stringPattern':stringPattern,
                                'stringPattFileName':spname})
-        
+
+        # Write out table HTML code for L1 and L2
+        tableText = ''
+        for row in tableRows:
+            row = tuple(row)
+            if len(row) == 2:
+                tableText+= ('<tr><td><img src="%s"/></td>'
+                             '<td><img src="%s"</td></tr>\n'%row)
+                tableText+= ('<tr><td>%s</td><td>%s</td></tr>\n'%row)
+            else:
+                print row
+                tableText+= ('<tr><td><img src="%s"/></td></tr>\n'%row)
+                tableText+= ('<tr><td>%s</td></tr>\n'%row)
+
         # Level 3: composite of Level 2 markers (4 x L2)
         bd,ws,pwidth = 3*bd,3*ws,l2[0][0]['imageObject'].size[0]
         imwidth = 2*bd+4*ws+2*pwidth
@@ -200,6 +250,15 @@ class NestedMarkerCreator:
         fname = 'test.L3.gif'
         im.save(fname)
         spname = 'test.L3.patt'
+
+        tableText += '<tr><td colspan=2><img src="test.L3.gif"/></td></tr>'
+        
+        # Write out HTML page with images on it for printing
+        htmlText = HTMLBP%tableText
+        htmlFP = open('test.html','w')
+        htmlFP.write(htmlText)
+        htmlFP.close()
+
         # crop the border, resize to 16,16
         pim = im.crop((bd,bd,imwidth-bd,
                        imwidth-bd)).resize((16,16),
@@ -288,6 +347,11 @@ class NestedMarkerCreator:
 
 if __name__=='__main__':
     n = NestedMarkerCreator()
-    n.Generate(markerDirName='testMarker1')
-    n.Generate(markerDirName='testMarker2')
+    if 1:
+        directories = sys.argv[1:]
+        for directory in directories:
+            n.Generate(markerDirName=directory)
+    else:
+        for i in range(30):
+            n.Generate(markerDirName='testMarker.%s'%str(i))
     

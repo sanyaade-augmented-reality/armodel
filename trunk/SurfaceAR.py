@@ -1,17 +1,20 @@
 #!/usr/bin/env python
-import os,sys
+import os,sys,optparse,pprint
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+
+import numpy
+import numpy.random as random
+
 import AR
 import Surface
 import BezierSurface,BezierGroup,MeshGroup
 import Tools
 from Marker import Marker,MarkerDisplay
 from NestedMarker import NestedMarker
-import numpy
-import numpy.random as random
+
 """
 class WandDisplay(MarkerDisplay):
     def Draw(self):
@@ -287,8 +290,19 @@ class SurfaceAR:
         self.bsdisplay.Init()
     def Run(self):
         vconf = " ".join(sys.argv[1:])
-        print sys.argv
-        AR.Init(threshold=85,
+        op = optparse.OptionParser()
+        op.add_option('-d', '--dialog',dest='dialog',
+                      help='Camera input dialog',
+                      action='store_true',
+                      default=False,
+                      )
+        op.add_option('-t', '--thresh',dest='threshold',
+                      default=85, type='int')
+        (options,args) = op.parse_args()
+        vconf = '-nodialog'
+        if options.dialog:
+            vconf = ''
+        AR.Init(threshold=options.threshold,
                 vconf=vconf,
                 initFunc=self.Init,
                 )
