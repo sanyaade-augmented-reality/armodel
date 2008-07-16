@@ -6,6 +6,7 @@
 class ARSetup {
 public:
   ARSetup();
+  ~ARSetup();
   float GetViewScaleFactor() {return view_scalefactor;}
   void SetViewScaleFactor(float val) {view_scalefactor=val;}
 
@@ -36,6 +37,8 @@ public:
   int GetXWin() {return xwin;}
   void SetYWin(int yval) {ywin=yval;}
   int GetYWin() {return ywin;}
+  int GetWinWidth() {return winWidth;}
+  int GetWinHeight() {return winHeight;}
   void SetHMDFlag(int val) {hmdFlag=val;}
   int GetHMDFlag() {return hmdFlag;}
   void SetVconf(string val) { vconf = val; }
@@ -45,8 +48,6 @@ public:
 
   void CleanUp();
 
-  void MainLoop();
-  
 private:
   // 1.0 ARToolKit unit becomes 0.025 of my OpenGL units.
   float view_scalefactor;
@@ -65,6 +66,7 @@ private:
   double zoom;
   int fullScreen;
   int xwin,ywin;
+  int winWidth, winHeight;
   int hmdFlag;
 
   // ARGL info

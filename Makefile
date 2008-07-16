@@ -6,15 +6,14 @@ COMMON_OBJECTS=cxxsupport.o cxx_extensions.o cxxextensions.o IndirectPythonInter
 
 
 LDFLAG= -g -L$(LIB_DIR)
-LIBS= -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -lobjc -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti 
-PYLIBS= -bundle -g -u _PyMac_Error -lobjc -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -F/Library/Frameworks -framework System -framework Python
+PYLIBS= -bundle -g -u _PyMac_Error -lobjc -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -F/Library/Frameworks -framework System -framework Python -lcv -lcxcore -lhighgui
 CFLAG= -g -O -fPIC -I$(INC_DIR) -I/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -I.
 
-OBJS = object.o MarkerTracker.o ARSetup.o # ARControl.o 
+OBJS = object.o MarkerTracker.o ARSetup.o ARCV.o 
 PYOBJS = $(COMMON_OBJECTS) $(OBJS)
-HEADERS = object.h MarkerTracker.hpp ARSetup.hpp # ARControl.hpp
+HEADERS = framework.hpp object.h MarkerTracker.hpp ARSetup.hpp ARCV.hpp
 
-all: AR.so VideoTest 
+all: AR.so 
 
 AR.so: $(PYOBJS) AR.o
 	g++ -o AR.so AR.o $(PYOBJS) $(PYLIBS)
@@ -22,20 +21,17 @@ AR.so: $(PYOBJS) AR.o
 AR.o: AR.cpp
 	g++ -c AR.cpp $(CFLAG) 
 
-VideoTest: $(OBJS) VideoTest.o 
-	g++ -o VideoTest VideoTest.o $(OBJS) $(LDFLAG) $(LIBS)
-
-VideoTest.o: VideoTest.cpp $(HEADERS)
-	g++ -c VideoTest.cpp $(CFLAG) 
-
-object.o: object.c $(HEADDERS)
+object.o: object.c $(HEADERS)
 	g++ -c object.c $(CFLAG) 
 
-MarkerTracker.o: MarkerTracker.cpp $(HEADDERS)
+MarkerTracker.o: MarkerTracker.cpp $(HEADERS)
 	g++ -c MarkerTracker.cpp $(CFLAG) 
 
-ARSetup.o: ARSetup.cpp $(HEADDERS)
+ARSetup.o: ARSetup.cpp $(HEADERS)
 	g++ -c ARSetup.cpp $(CFLAG) 
+
+ARCV.o: ARCV.cpp $(HEADERS)
+	g++ -c ARCV.cpp $(CFLAG) 
 
 #
 #	common objects
@@ -55,6 +51,6 @@ IndirectPythonInterface.o: CXX/IndirectPythonInterface.cxx
 
 clean:
 	rm *.o
-	rm VideoTest
+#	rm VideoTest
 	rm *.so
 

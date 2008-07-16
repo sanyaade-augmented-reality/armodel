@@ -34,7 +34,10 @@ public:
   int GetNumMarkersFound() {return nMarkersFound;}
   int GetScreenPos(int index, double pos[2]);
   int GetThreshold() {return threshold;}
-  int SetThreshold(int thresh) {threshold=thresh;}
+  int SetThreshold(int thresh) {
+    threshold=thresh;
+    cout << ">-- Setting threshold: " << threshold << endl;
+  }
   ARMultiMarkerInfoT *GetMulti() {return multi;}
 private:
   // Info on markers found in video stream

@@ -19,6 +19,9 @@ ARSetup::ARSetup() {
   hmdFlag = 0;
 }
 
+ARSetup::~ARSetup () {
+}
+
 int ARSetup::SetupWindow() {
   argInit( &cparam, zoom, fullScreen, xwin, ywin, hmdFlag );
 
@@ -29,8 +32,8 @@ int ARSetup::SetupWindow() {
 }
 
 int ARSetup::SetupCamera() {
-  ARParam			wparam;
-  int				xsize, ysize;
+  ARParam wparam;
+  //int xsize, ysize;
 
   // Open the video path.
   if (arVideoOpen((char *)vconf.c_str()) < 0) {
@@ -39,29 +42,36 @@ int ARSetup::SetupCamera() {
   }
 	
   // Find the size of the window.
-  if (arVideoInqSize(&xsize, &ysize) < 0) return (FALSE);
-  fprintf(stdout, "Camera image size (x,y) = (%d,%d)\n", xsize, ysize);
+  if (arVideoInqSize(&winWidth, &winHeight) < 0) return (FALSE);
+  fprintf(stdout, "Camera image size (x,y) = (%d,%d)\n", winWidth, winHeight);
 	
   // Load the camera parameters, resize for the window and init.
   if (arParamLoad(cparam_name.c_str(), 1, &wparam) < 0) {
     fprintf(stderr, "setupCamera(): Error loading parameter file %s for camera.\n", cparam_name.c_str());
     return (FALSE);
   }
-  arParamChangeSize(&wparam, xsize, ysize, &cparam);
+  arParamChangeSize(&wparam, winWidth, winHeight, &cparam);
+  cout << "-------------------------------------"<< endl;
   fprintf(stdout, "*** Camera Parameter ***\n");
   arParamDisp(&cparam);
+  cout << endl;
 	
   arInitCparam(&cparam);
-
+  
   isInit = 1;
   return (TRUE);
 }
 
 void ARSetup::CleanUp () {
-  arglCleanup(myArglSettings);
+  cout << "----------------------------------------" << endl;
+  cout << "Cleaning up ARSetup info" << endl;
+  cout << "--> Video" << endl;
+  cout << "   .. stopping video capture" << endl;
   arVideoCapStop();
+  cout << "   .. closing video" << endl;
   arVideoClose();
+  cout << "   .. cleaning up argl settings" << endl;
+  arglCleanup(myArglSettings);
+  cout << "Done with ARSetup cleanup" << endl;
 }
 
-void ARSetup::MainLoop () {
-}

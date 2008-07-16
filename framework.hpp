@@ -26,6 +26,9 @@
 #include <AR/arMulti.h>
 #include "object.h"
 
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -33,6 +36,7 @@
 using namespace std;
 
 #include "ARSetup.hpp"
+#include "ARCV.hpp"
 #include "MarkerTracker.hpp"
 /*#include "ARControl.hpp"*/
 
