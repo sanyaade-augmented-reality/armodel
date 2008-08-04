@@ -17,14 +17,23 @@ public:
 
 private:
   CvSize *size;
-  IplImage *originalImage; // original image
-  IplImage *modifiedImage; // original image
+  IplImage *originalImage; // original camera framecap
+  IplImage *rgbaPlanes[4]; // RGBA layers of framecap
+  IplImage *hsvImage; //HSV image info
+  IplImage *hsvPlanes[3]; // HSV planes
+  IplImage *modifiedImage; // modified version of original image
   IplImage *tempImage; // temp placeholder for camera framecap
   IplImage *grayImage; // grayscale image
+  IplImage *work1[5]; // workspace 1-channel images
+  IplImage *work3[5]; // workspace 3-channel images
   ARUint8 *tempStorage; // to store pixel information from ARTK screen
                         // cap
   ARUint8 *modifiedStorage; // to store ARUint8 array version of
                             // modified CV image
+  IplImage *laplace; // Storage for Laplacian of framecap
+  IplImage *colorLaplace; // color version
+  CvMemStorage *cvStorage[10];
+
   void gray2rgba(IplImage *gray, IplImage *rgba);
 };
 

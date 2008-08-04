@@ -6,8 +6,8 @@ COMMON_OBJECTS=cxxsupport.o cxx_extensions.o cxxextensions.o IndirectPythonInter
 
 
 LDFLAG= -g -L$(LIB_DIR)
-PYLIBS= -bundle -g -u _PyMac_Error -lobjc -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -F/Library/Frameworks -framework System -framework Python -lcv -lcxcore -lhighgui
-CFLAG= -g -O -fPIC -I$(INC_DIR) -I/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -I.
+PYLIBS= -bundle -g -u _PyMac_Error -lobjc -F/System/Library/Frameworks -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -framework System -framework Python -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -lcv -lcxcore -lhighgui
+CFLAG= -g -O -fPIC -I$(INC_DIR) -I/usr/include/python2.5 -I.
 
 OBJS = object.o MarkerTracker.o ARSetup.o ARCV.o 
 PYOBJS = $(COMMON_OBJECTS) $(OBJS)
