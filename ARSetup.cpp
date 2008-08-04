@@ -6,7 +6,7 @@ ARSetup::ARSetup() {
   view_distance_max=100.0;
   isInit = 0;
 //   strcpy(cparam_name,"Data/camera_para.dat");
-  cparam_name = "/Users/dogwynn/AR/Data/camera_para.dat";
+  cparam_name = "/Users/dogwynn/Research/armodel/Data/camera_para.dat";
 #ifdef _WIN32
   vconf="Data\\WDM_camera_flipV.xml";
 #else
