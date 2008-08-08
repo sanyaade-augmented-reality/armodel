@@ -1,7 +1,39 @@
-#include "framework.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h> // malloc(), free()
+#include <string.h>
+#include <math.h>
+
+#include <string>
+#include <vector>
+#include <iostream>
+
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else
+#  include <GL/glut.h>
+#endif
+
+#if 0
+#include <AR/ar.h>
+#include <AR/arMulti.h>
+#include "object.h"
+#endif
+
+//#include "framework.hpp"
 
 #include <CXX/Objects.hxx>
 #include <CXX/Extensions.hxx>
+
+#include <AR/gsub.h>
+#include <AR/gsub_lite.h>
+#include <AR/video.h>
+
+#include "ARSetup.hpp"
+#include "ARCV.hpp"
+#include "MarkerTracker.hpp"
+
+//#include <AR/param.h> // arParamDisp()
 
 using namespace Py;
 
@@ -168,10 +200,12 @@ private:
     // Tracker settings
     if (kws.hasKey("modelName")) {
       String val(kws["modelName"]);
+      std::cout << "Setting model file name to: " << val.as_string() << endl;
       tracker.SetModelName(val.as_string());
     }
     if (kws.hasKey("multiModelName")) {
       String val(kws["multiModelName"]);
+      std::cout << "Setting multi model file name to: " << val.as_string() << endl;
       tracker.SetMultiModelName(val.as_string());
     }
     if (kws.hasKey("threshold")) {
@@ -474,10 +508,10 @@ private:
     ARUint8 *modified = arcv.GetModifiedAsCameraReady();
 
     // Draw Image
-    ARParam *cparam = setup.GetCParam();
+    //ARParam *cparam = setup.GetCParam();
     argDrawMode2D();
     //arglDispImage( imageData,cparam,1.0,setup.GetArglSettings());
-    arglDispImage( modified,cparam,1.0,setup.GetArglSettings());
+    arglDispImage( modified,setup.GetCParam(),1.0,setup.GetArglSettings());
 
     arVideoCapNext();
     // Image data is no longer valid after calling arVideoCapNext().

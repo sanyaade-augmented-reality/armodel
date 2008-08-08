@@ -15,6 +15,8 @@ import Tools
 from Marker import Marker,MarkerDisplay
 from NestedMarker import NestedMarker
 
+#print 'XXX',os.path.abspath('.')
+
 """
 class WandDisplay(MarkerDisplay):
     def Draw(self):
@@ -298,12 +300,18 @@ class SurfaceAR:
                       )
         op.add_option('-t', '--thresh',dest='threshold',
                       default=85, type='int')
+        op.add_option('--model',dest='model',
+                      default='/Users/dogwynn/AR/Data/object_data2')
+        op.add_option('--multi',dest='multi',
+                      default='/Users/dogwynn/AR/Data/multi/tabletop.dat')
         (options,args) = op.parse_args()
         vconf = '-nodialog'
         if options.dialog:
             vconf = ''
         AR.Init(threshold=options.threshold,
                 vconf=vconf,
+                modelName=options.model,
+                multiModelName=options.multi,
                 initFunc=self.Init,
                 )
         AR.Run()

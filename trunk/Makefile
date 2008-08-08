@@ -6,12 +6,12 @@ COMMON_OBJECTS=cxxsupport.o cxx_extensions.o cxxextensions.o IndirectPythonInter
 
 
 LDFLAG= -g -L$(LIB_DIR)
-PYLIBS= -bundle -g -u _PyMac_Error -lobjc -F/System/Library/Frameworks -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -framework System -framework Python -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -lcv -lcxcore -lhighgui
-CFLAG= -g -O -fPIC -I$(INC_DIR) -I/usr/include/python2.5 -I.
+PYLIBS= -bundle -g -u _PyMac_Error -lobjc -F/System/Library/Frameworks -framework Carbon -framework QuickTime -framework GLUT -framework OpenGL -framework AppKit -framework Foundation -framework System -framework Python -L$(LIB_DIR) -lAR -lARvideo -lARgsub -lARgsub_lite -lARmulti -lcv -lcxcore -lhighgui -L$(ARTKP)/lib -lARToolKitPlus
+CFLAG= -g -O -fPIC -I$(INC_DIR) -I/usr/include/python2.5 -I. -I$(ARTKP)/include -I$(ARTKP)/src -I$(ARTKP) #-I/usr/local/Qt4.3/mkspecs/darwin-g++  -march=pentium4 -msse2 -msse -mtune=pentium4 
 
 OBJS = object.o MarkerTracker.o ARSetup.o ARCV.o 
 PYOBJS = $(COMMON_OBJECTS) $(OBJS)
-HEADERS = framework.hpp object.h MarkerTracker.hpp ARSetup.hpp ARCV.hpp
+HEADERS = object.h MarkerTracker.hpp ARSetup.hpp ARCV.hpp # framework.hpp 
 
 all: AR.so 
 

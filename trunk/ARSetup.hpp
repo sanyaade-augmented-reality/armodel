@@ -1,7 +1,23 @@
 #ifndef __arsetup_h__
 #define __arsetup_h__
 
-#include "framework.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h> // malloc(), free()
+#include <string.h>
+#include <math.h>
+
+#include <string>
+#include <vector>
+#include <iostream>
+
+#include <AR/param.h> // arParamDisp()
+#include <AR/gsub.h>
+#include <AR/gsub_lite.h>
+#include <AR/video.h>
+
+
+using namespace std;
 
 class ARSetup {
 public:

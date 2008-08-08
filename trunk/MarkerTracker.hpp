@@ -1,7 +1,23 @@
 #ifndef __markertracker_h__
 #define __markertracker_h__
 
-#include "framework.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h> // malloc(), free()
+#include <string.h>
+#include <math.h>
+
+#include <string>
+#include <vector>
+#include <iostream>
+
+//#include "ARToolKitPlus/TrackerMultiMarkerImpl.h"
+
+#include <AR/ar.h>
+#include <AR/arMulti.h>
+#include "object.h"
+
+using namespace std;
 
 class MarkerTracker {
 public:
@@ -42,6 +58,7 @@ public:
 private:
   // Info on markers found in video stream
   ARMarkerInfo *markersFound;
+  //ARToolKitPlus::TrackerMultiMarker *tracker;
   int nMarkersFound;
   string modelName;
   // Multi-object pattern info
