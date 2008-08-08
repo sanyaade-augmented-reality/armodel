@@ -1,7 +1,22 @@
 #ifndef __arcv_h__
 #define __arcv_h__
 
-#include "framework.hpp"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h> // malloc(), free()
+#include <string.h>
+#include <math.h>
+
+#include <string>
+#include <vector>
+#include <iostream>
+
+#include "opencv/cv.h"
+#include "opencv/highgui.h"
+
+#include <AR/ar.h>
+
+using namespace std;
 
 class ARCV {
 public:

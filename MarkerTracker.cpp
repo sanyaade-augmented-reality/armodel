@@ -1,8 +1,12 @@
+//#include "framework.hpp"
+
 #include "MarkerTracker.hpp"
 
 MarkerTracker::MarkerTracker () {
+  //tracker = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, 1, 16>(100,100);
   modelName = "/Users/dogwynn/AR/Data/object_data2";
   multiModelName = "/Users/dogwynn/AR/Data/multi/marker.dat";
+  //multiModelName = "/Users/dogwynn/AR/Data/multi/tabletop.dat";
   threshold = 100;
 }
 
@@ -14,25 +18,15 @@ int MarkerTracker::Track(ARUint8 *dataPtr) {
   }
   multiErr=arMultiGetTransMat(markersFound, nMarkersFound, multi);
 
-//   int go=0;
-//   for (i=0;i<multi->marker_num;i++) {
-//     if (multi->marker[i].visible>=0) {
-//       if (!go) { cout <<  "| "; go=1; }
-//       cout << i << ": " << multi->marker[i].pos3d[0][0] << " | " ;
-//     }
-//   }
-//   if (go>0) cout << endl;
-
   /* check for known patterns */
   for( i = 0; i < nMarkers; i++ ) {
     k = -1;
     for( j = 0; j < nMarkersFound; j++ ) {
       if( markers[i].id == markersFound[j].id) {
         /* you've markersFound a pattern */
-//         printf("Pattern markersFound! %f %f\n",markersFound[j].pos[0],
-//                 markersFound[j].pos[1]);
         if( k == -1 ) k = j;
-        else /* make sure you have the best pattern (highest confidence factor) */
+        else /* make sure you have the best pattern (highest
+                confidence factor) */
           if( markersFound[k].cf < markersFound[j].cf ) k = j;
       }
     }
@@ -91,9 +85,9 @@ int MarkerTracker::MarkerFound() {
 int MarkerTracker::MarkerFound(string name) {
   // Is the pattern even loaded into the system?
   int i,j,k;
-  int haspat=FALSE;
+  int haspat=0;
   for (i=0;i<nMarkers;i++) {
-    if (strcmp(markers[i].name,name.c_str())>=0) haspat=TRUE;
+    if (strcmp(markers[i].name,name.c_str())>=0) haspat=1;
   }
   if (!haspat) return -1;
   // If so, has it been found?
@@ -107,11 +101,11 @@ int MarkerTracker::MarkerFound(string name) {
 int MarkerTracker::InitTracker() {
   int i,j,k;
   markers = read_ObjData(modelName.c_str(), &nMarkers);
-  if (markers == NULL) return FALSE;
+  if (markers == NULL) return 0;
   cout << "Loading multi marker data: " << multiModelName << endl;
   if( (multi = arMultiReadConfigFile(multiModelName.c_str())) == NULL ) {
     printf("XXX config data load error !!\n");
-    return FALSE;
+    return 0;
   }
   for(k=0;k<multi->marker_num;k++) {
     //cout << "Marker num: " << k << " id: " << multi->marker[k].patt_id << endl;
