@@ -1,6 +1,8 @@
 //#include "framework.hpp"
 
 #include "MarkerTracker.hpp"
+//#include "ARToolKitPlus/TrackerMultiMarkerImpl.h"
+
 
 MarkerTracker::MarkerTracker () {
   //tracker = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, 1, 16>(100,100);

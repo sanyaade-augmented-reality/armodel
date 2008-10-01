@@ -93,14 +93,15 @@ ARUint8* ARCV::GetModifiedAsCameraReady() {
   //cvCvtColor(colorLaplace,grayImage,CV_RGBA2GRAY);
 
 
-  #if 0
   // saturation
   cvCopyImage(hsvPlanes[1],work1[1]);
   cvThreshold( work1[1], work1[1], 130, 255, CV_THRESH_BINARY);
 
+  //#if 0
   // value
   cvCopyImage(hsvPlanes[2],work1[2]);
-  cvThreshold( work1[2], work1[2], 90, 255, CV_THRESH_BINARY);
+  cvThreshold( work1[2], work1[2], 200, 255, CV_THRESH_BINARY);
+  //#endif
 
   // hue 
   cvCopyImage(hsvPlanes[0],work1[0]);
@@ -116,7 +117,9 @@ ARUint8* ARCV::GetModifiedAsCameraReady() {
   cvSmooth(work1[0],work1[0],CV_GAUSSIAN,17,17);
   cvThreshold( work1[0], work1[0], 128, 255, CV_THRESH_BINARY);
   cvCanny(work1[0],work1[0],50,200);
-  cvCopyImage(work1[0],grayImage);
+
+  //cvCopyImage(work1[0],grayImage);
+
   //cvCvtColor(work1[0],modifiedImage,CV_GRAY2RGB);
 
   //cvSmooth(grayImage,grayImage,CV_GAUSSIAN,17,17);
@@ -124,14 +127,17 @@ ARUint8* ARCV::GetModifiedAsCameraReady() {
   cvCvtColor(grayImage,modifiedImage,CV_GRAY2RGB);
 
   CvSeq* contour = 0;
-  cvFindContours(grayImage, cvStorage[0], &contour, sizeof(CvContour),
+  cvFindContours(work1[0], cvStorage[0], &contour, sizeof(CvContour),
                  CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+//   cvFindContours(grayImage, cvStorage[0], &contour, sizeof(CvContour),
+//                  CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 //   contour = cvApproxPoly( contour, sizeof(CvContour), cvStorage[0],
 //                            CV_POLY_APPROX_DP, 3, 1 );
   cvDrawContours(modifiedImage,contour,
                  CV_RGB(255,0,0),CV_RGB(0,255,0),
                  1, 1);
   
+  #if 0
   CvSeq* lines = cvHoughLines2(grayImage,cvStorage[0],
                                CV_HOUGH_PROBABILISTIC, 1, CV_PI/180,
                                50,50,10);
