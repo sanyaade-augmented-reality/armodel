@@ -11,8 +11,6 @@
 #include <vector>
 #include <iostream>
 
-//#include "ARToolKitPlus/TrackerMultiMarkerImpl.h"
-
 #include <AR/ar.h>
 #include <AR/arMulti.h>
 #include "object.h"
