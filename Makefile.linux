@@ -1,0 +1,44 @@
+INC_DIR= /usr/include
+LIB_DIR= /usr/lib
+BIN_DIR= .
+
+COMMON_OBJECTS=cxxsupport.o cxx_extensions.o cxxextensions.o IndirectPythonInterface.o
+
+all: newAR.so 
+
+#----------------------------------------------------------------
+newAR_CFLAGS= -g -O -fPIC -I/usr/include -I/home/dogwynn/include  -I/home/dogwynn/include/python2.6 -I. -I$(ARTKP)/include -I$(ARTKP)/src -I$(ARTKP) 
+newAR_PYOBJECTS= $(COMMON_OBJECTS)
+newAR_PYLIBS= -shared -g -L/home/dogwynn/lib -lGL -lglut \
+	-L$(LIB_DIR) -lcv -lcxcore -lhighgui \
+	-L$(ARTKP)/lib -lARToolKitPlus
+newAR.so: $(newAR_PYOBJECTS) newAR.o
+	g++ -o newAR.so newAR.o $(newAR_PYOBJECTS) $(newAR_PYLIBS)
+newAR.o: newAR.cpp
+	g++ -c newAR.cpp $(newAR_CFLAGS)
+#----------------------------------------------------------------
+
+
+CFLAG= -g -O -fPIC -I$(INC_DIR) -I/home/dogwynn/include -I/home/dogwynn/include/python2.6 -I. -I$(ARTKP)/include -I$(ARTKP)/src -I$(ARTKP) 
+
+#
+#	common objects
+#
+cxxsupport.o: CXX/cxxsupport.cxx
+	g++ -c $(CFLAG) -o $@ $<
+
+cxx_extensions.o: CXX/cxx_extensions.cxx
+	g++ -c $(CFLAG) -o $@ $<
+
+cxxextensions.o: CXX/cxxextensions.c
+	gcc -c $(CFLAG) -o $@ $<
+
+IndirectPythonInterface.o: CXX/IndirectPythonInterface.cxx
+	g++ -c $(CFLAG) -o $@ $< 
+
+
+clean:
+	rm *.o
+#	rm VideoTest
+	rm *.so
+
