@@ -4,21 +4,21 @@ BIN_DIR= .
 
 COMMON_OBJECTS=cxxsupport.o cxx_extensions.o cxxextensions.o IndirectPythonInterface.o
 
-all: newAR.so 
+all: _AR.so 
 
 #----------------------------------------------------------------
-newAR_CFLAGS= -g -O -fPIC -I/usr/local/include -I/usr/include/python2.5 -I. -I$(ARTKP)/include -I$(ARTKP)/src -I$(ARTKP) #-I/usr/local/Qt4.3/mkspecs/darwin-g++  -march=pentium4 -msse2 -msse -mtune=pentium4
-newAR_PYOBJECTS= $(COMMON_OBJECTS)
-newAR_PYLIBS= -bundle -g -u _PyMac_Error -lobjc \
+_AR_CFLAGS= -g -O -fPIC -I/usr/local/include -I/usr/include/python2.5 -I. -I$(ARTKP)/include -I$(ARTKP)/src -I$(ARTKP) #-I/usr/local/Qt4.3/mkspecs/darwin-g++  -march=pentium4 -msse2 -msse -mtune=pentium4
+_AR_PYOBJECTS= $(COMMON_OBJECTS)
+_AR_PYLIBS= -bundle -g -u _PyMac_Error -lobjc \
 	-F/System/Library/Frameworks -framework Carbon \
 	-framework QuickTime -framework GLUT -framework OpenGL \
 	-framework AppKit -framework Foundation -framework System \
 	-framework Python -L$(LIB_DIR) -lcv -lcxcore -lhighgui \
 	-L$(ARTKP)/lib -lARToolKitPlus
-newAR.so: $(newAR_PYOBJECTS) newAR.o
-	g++ -o newAR.so newAR.o $(newAR_PYOBJECTS) $(newAR_PYLIBS)
-newAR.o: newAR.cpp
-	g++ -c newAR.cpp $(newAR_CFLAGS)
+_AR.so: $(_AR_PYOBJECTS) _AR.o
+	g++ -o _AR.so _AR.o $(_AR_PYOBJECTS) $(_AR_PYLIBS)
+_AR.o: _AR.cpp
+	g++ -c _AR.cpp $(_AR_CFLAGS)
 #----------------------------------------------------------------
 
 #----------------------------------------------------------------

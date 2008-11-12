@@ -905,12 +905,25 @@ class CvChainPtReader(Structure):
     _fields_ = []
 
 class CvContour(_Structure):
-    _fields_ = CvSeq._fields_[:]
-    _fields_.extend( [
-            ('rect',CvRect),
-            ('color',c_int),
-            ('reserved',c_int*3),
-            ])
+    _fields_ = [
+        ("flags", c_int),
+        ("header_size", c_int),
+        ("h_prev", c_void_p),
+        ("h_next", c_void_p),
+        ("v_prev", c_void_p),
+        ("v_next", c_void_p),
+        ("total", c_int),
+        ("elem_size", c_int),
+        ("block_max", c_void_p),
+        ("ptr", c_void_p),
+        ("delta_elems", c_int),
+        ("storage", POINTER(CvMemStorage)),
+        ("free_blocks", c_void_p),
+        ("first", c_void_p),
+        ('rect',CvRect),
+        ('color',c_int),
+        ('reserved',c_int*3),
+        ]
 
 class CvCmpFunc(Structure):
     _fields_ = []
@@ -2059,8 +2072,8 @@ cvGetSeqElem = cfunc('cvGetSeqElem', _cxDLL, c_void_p,
 )
 
 def CV_GET_SEQ_ELEM(TYPE, seq, index):
-    result = cvGetSeqElem(seq)
-    return cast(result, POINTER(TYPE))
+    result = cvGetSeqElem(seq,index)
+    return ctypes.cast(result, POINTER(TYPE))
 
 # Returns index of concrete sequence element
 cvSeqElemIdx = cfunc('cvSeqElemIdx', _cxDLL, c_int,
