@@ -355,10 +355,10 @@ private:
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f, z);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f, z);
     /*
-    glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-    glTexCoord2f(1.0f, 0.0f); glVertex2f( 1.0f, -1.0f);
-    glTexCoord2f(1.0f, 1.0f); glVertex2f( 1.0f,  1.0f);
-    glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f,  1.0f);
+      glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+      glTexCoord2f(1.0f, 0.0f); glVertex2f( 1.0f, -1.0f);
+      glTexCoord2f(1.0f, 1.0f); glVertex2f( 1.0f,  1.0f);
+      glTexCoord2f(0.0f, 1.0f); glVertex2f(-1.0f,  1.0f);
     */
     glEnd();
     glPopMatrix();
@@ -379,7 +379,7 @@ private:
     ///////////////////////////////
     // Image preprocessing
     
-    cvCvtColor(frame, grayFrame, CV_RGB2GRAY);
+    //cvCvtColor(frame, grayFrame, CV_RGBA2GRAY);
 
     // Call python-specified pre-render function if it exists    
     if (Library.hasKey("preRender")) {
@@ -456,7 +456,9 @@ private:
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
     List mddKeys(multiDisplayDict.keys());
     for (int i=0; i<mddKeys.length(); i++) {
+      std::cout << "here2" << std::endl;
       int num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
+      std::cout << "here3" << std::endl;
       if (num) {
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf(multiTracker[i]->getProjectionMatrix());
@@ -471,21 +473,24 @@ private:
         Callable displayFunc(multiDisplayDict[mddKeys[i]]);
         displayFunc.apply(noarg);
       }
+      std::cout << "here4" << std::endl;
       
-    // Call python-specified pre-render function if it exists    
-    if (Library.hasKey("postRender")) {
-      if (getVerbosity()>0) {
-        std::cout << "Calling python init func" << std::endl;
+      // Call python-specified pre-render function if it exists    
+      if (Library.hasKey("postRender")) {
+        if (getVerbosity()>0) {
+          std::cout << "Calling python init func" << std::endl;
+        }
+        Callable postRender(Library["postRender"]);
+        try {
+          postRender.apply(noarg);
+        } catch  (Exception &e){
+          std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
+          PyErr_Print();
+          //e.clear();
+        }
+        std::cout << "here5" << std::endl;
       }
-      Callable postRender(Library["postRender"]);
-      try {
-        postRender.apply(noarg);
-      } catch  (Exception &e){
-        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
-        PyErr_Print();
-        //e.clear();
-      }
-    }
+      std::cout << "here6" << std::endl;
     }
     
     // --------------------------------
@@ -502,11 +507,11 @@ private:
     // If we can't see the multi-marker palette, just draw the found
     // single-marker wand
     /*
-    if ((tracker.GetMultiErr() < 0) || (tracker.GetMultiErr() > 100.0 )) {
+      if ((tracker.GetMultiErr() < 0) || (tracker.GetMultiErr() > 100.0 )) {
       drawSingle();
       argSwapBuffers();
       return;
-    }
+      }
     */
 
     drawMulti();
@@ -552,32 +557,32 @@ private:
     List markers;
     double gl_para[16];
     /*
-    if ((nFound=tracker.GetFound(foundIds)) > 0) {
+      if ((nFound=tracker.GetFound(foundIds)) > 0) {
       for (i=0;i<nFound;i++) {
-        mid = foundIds[i];
-        marker = tracker.GetFound(mid);
-        Dict mdict;
-        mdict["id"] = Int(mid);
-        mdict["name"] = String(marker.name);
-        Tuple pos(2);
-        pos[0] = Float(marker.pos[0]);
-        pos[1] = Float(marker.pos[1]);
-        mdict["pos"] = pos;
-        mdict["trans"] = pytrans(marker.trans);
-        argConvGlpara(marker.trans, gl_para);
-        Tuple mvmat(16);
-        for(j=0;j<16;j++){
-          mvmat[j] = Float(gl_para[j]);
-        }
-        mdict["mvmat"] = mvmat;
-        Tuple xyz(3);
-        for(j=0;j<3;j++) {
-          xyz[j]=Float(gl_para[12+j]);
-        }
-        mdict["xyz"] = xyz;
-        markers.append(mdict);
+      mid = foundIds[i];
+      marker = tracker.GetFound(mid);
+      Dict mdict;
+      mdict["id"] = Int(mid);
+      mdict["name"] = String(marker.name);
+      Tuple pos(2);
+      pos[0] = Float(marker.pos[0]);
+      pos[1] = Float(marker.pos[1]);
+      mdict["pos"] = pos;
+      mdict["trans"] = pytrans(marker.trans);
+      argConvGlpara(marker.trans, gl_para);
+      Tuple mvmat(16);
+      for(j=0;j<16;j++){
+      mvmat[j] = Float(gl_para[j]);
       }
-    }
+      mdict["mvmat"] = mvmat;
+      Tuple xyz(3);
+      for(j=0;j<3;j++) {
+      xyz[j]=Float(gl_para[12+j]);
+      }
+      mdict["xyz"] = xyz;
+      markers.append(mdict);
+      }
+      }
     */
     return (Object) markers;
   }
@@ -590,17 +595,17 @@ private:
     Dict pymulti;
 
     /*
-    ARMultiMarkerInfoT *multi = tracker.GetMulti();
-    pymulti["err"] = Float(tracker.GetMultiErr());
-    pymulti["trans"] = pytrans(multi->trans);
+      ARMultiMarkerInfoT *multi = tracker.GetMulti();
+      pymulti["err"] = Float(tracker.GetMultiErr());
+      pymulti["trans"] = pytrans(multi->trans);
 
-    double gl_para[16];
-    Tuple mvmat(16);
-    argConvGlpara(multi->trans, gl_para);
-    for(i=0;i<16;i++){
+      double gl_para[16];
+      Tuple mvmat(16);
+      argConvGlpara(multi->trans, gl_para);
+      for(i=0;i<16;i++){
       mvmat[i] = Float(gl_para[i]);
-    }
-    pymulti["mvmat"] = mvmat;
+      }
+      pymulti["mvmat"] = mvmat;
     */
     
     return (Object) pymulti;
@@ -644,35 +649,35 @@ private:
 
   static void takeCvNormalScreenCap() {
     /*
-    IplImage *normal = arcv.GetOriginal();
-    std::cout << normal << std::endl;
-    std::cout << cvSaveImage("cvScreenCapNormal.jpg",normal) << std::endl;
+      IplImage *normal = arcv.GetOriginal();
+      std::cout << normal << std::endl;
+      std::cout << cvSaveImage("cvScreenCapNormal.jpg",normal) << std::endl;
     */
   }
   static void takeCvGrayScreenCap() {
     /*
-    IplImage *gray = arcv.GetGrayscale();
-    std::cout << gray << std::endl;
-    std::cout << cvSaveImage("cvScreenCapGray.jpg",gray) << std::endl;
+      IplImage *gray = arcv.GetGrayscale();
+      std::cout << gray << std::endl;
+      std::cout << cvSaveImage("cvScreenCapGray.jpg",gray) << std::endl;
     */
   }
   
   static void Keyboard(unsigned char key, int x, int y) {
     switch (key) {
       /*
-    case 'c':
-      takeCvNormalScreenCap();
-      break;
-    case 'g':
-      takeCvGrayScreenCap();
-      break;
+        case 'c':
+        takeCvNormalScreenCap();
+        break;
+        case 'g':
+        takeCvGrayScreenCap();
+        break;
       */
     case 0x1B:  // Quit.
     case 'Q':
     case 'q':
       /*
-      arcv.CleanUp();
-      setup.CleanUp();
+        arcv.CleanUp();
+        setup.CleanUp();
       */
       exit(0);
       break;

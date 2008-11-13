@@ -76,9 +76,9 @@ class ARSystem:
 
     def __init__(self):
         _AR.Init(
-            multiDisplayDict={'Data/markerboard-1-6.cfg':draw1},
+            #multiDisplayDict={'Data/markerboard-1-6.cfg':draw1},
             singleDisplayDict={0:draw2},
-            initFunc=self.Init,
+            #initFunc=self.Init,
             preRender=self.preRender,
             render=self.render,
             )
@@ -136,6 +136,7 @@ class ARSystem:
 
     def render(self):
         self.renderFrame(self.modifiedImage)
+        #print 'here'
 
     def getFrame(self):
         p = _AR.GetImage()
@@ -146,18 +147,28 @@ class ARSystem:
     def preRender(self):
         frame = self.getFrame()
 
-        cv.Copy(frame,self.image)
+        size = cv.GetSize(frame)
+        fsize = size.width,size.height
+        size = cv.GetSize(self.image)
+        isize = size.width,size.height
+        if fsize == isize:
+            cv.Copy(frame,self.image)
+        else:
+            cv.Resize(frame,self.image,
+                      CVtypes.CV_INTER_LINEAR,
+                      #CVtypes.CV_INTER_CUBIC,
+                      )
 
-        cv.CvtColor(frame, self.grayImage, CVtypes.CV_RGB2GRAY);
-        cv.CvtColor(frame, self.hsvImage, CVtypes.CV_RGB2HSV);
-        cv.Split( frame,
+        cv.CvtColor(self.image, self.grayImage, CVtypes.CV_RGB2GRAY);
+        cv.CvtColor(self.image, self.hsvImage, CVtypes.CV_RGB2HSV);
+        cv.Split( self.image,
                   self.rgbPlanes[0], self.rgbPlanes[1],
                   self.rgbPlanes[2], 0 )
         cv.Split( self.hsvImage,
                   self.hsvPlanes[0], self.hsvPlanes[1],
                   self.hsvPlanes[2], 0 )
-        
-        self.backProject()
+        cv.Copy(self.image,self.modifiedImage)
+        #self.backProject()
         #self.getContours()
 
     queHistSnap = False

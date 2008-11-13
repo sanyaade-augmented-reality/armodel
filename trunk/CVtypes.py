@@ -35,9 +35,14 @@ from ctypes import c_uint32, c_short, c_char, c_longlong
 # ----Load the DLLs ----------------------------------------------------------
 
 if os.name == 'posix':
-    _cxDLL = cdll.LoadLibrary('libcxcore.dylib')
-    _cvDLL = cdll.LoadLibrary('libcv.dylib')
-    _hgDLL = cdll.LoadLibrary('libhighgui.dylib')
+    try:
+        _cxDLL = cdll.LoadLibrary('libcxcore.dylib')
+        _cvDLL = cdll.LoadLibrary('libcv.dylib')
+        _hgDLL = cdll.LoadLibrary('libhighgui.dylib')
+    except OSError:
+        _cxDLL = cdll.LoadLibrary('/usr/lib/libcxcore.so')
+        _cvDLL = cdll.LoadLibrary('/usr/lib/libcv.so')
+        _hgDLL = cdll.LoadLibrary('/usr/lib/libhighgui.so')
 else:
     _cxDLL = cdll.cxcore100
     _cvDLL = cdll.cv100
