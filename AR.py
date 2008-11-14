@@ -46,10 +46,8 @@ def imageAsArray(image):
     return array
     
 class ARSystem:
-    #size = cv.Size(640,480)
-    if 'viswall' in os.environ['HOSTNAME']:
-        size = (320,240)
-    else:
+    size = (320,240)
+    if 'darwin' in os.uname()[0].lower():
         size = (640,480)
     cvsize = cv.Size(size[0],size[1])
     image = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3)
