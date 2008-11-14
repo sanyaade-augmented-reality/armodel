@@ -273,13 +273,13 @@ private:
       std::cout << "Initializing multi tracker: " << i
                 << " for file: " << file.as_string() 
                 << std::endl;
-      //printf("Width: %d Height: %d\n",w,h);
-      //multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, ARToolKitPlus::PIXEL_FORMAT_RGB, 16>(w,h);
-      multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, 1, 16>(w,h);
+      multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, ARToolKitPlus::PIXEL_FORMAT_RGB, 16>(w,h);
+      multiTracker[i]->setLogger(&logger);
       const char* description = multiTracker[i]->getDescription();
       printf("ARToolKitPlus compile-time information:\n%s\n\n", description);
-      multiTracker[i]->init("data/LogitechPro4000.dat",
+      int initVal = multiTracker[i]->init("data/LogitechPro4000.dat",
                             file.as_string().c_str(), 1.0f, 1000.0f);
+      printf("Init return value: %d\n",initVal); 
       multiTracker[i]->setBorderWidth(0.125f);
       multiTracker[i]->setThreshold((int)((Int)Library["threshold"]));
       multiTracker[i]->setPoseEstimator(ARToolKitPlus::POSE_ESTIMATOR_RPP);
@@ -464,9 +464,7 @@ private:
     List mddKeys(multiDisplayDict.keys());
     for (int i=0; i<mddKeys.length(); i++) {
       int num = 0;
-      printf("here2 %d %d\n",frame->imageData,multiTracker[i]);
       num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
-      std::cout << "here3" << std::endl;
       if (num) {
         glMatrixMode(GL_PROJECTION);
         glLoadMatrixf(multiTracker[i]->getProjectionMatrix());
@@ -481,7 +479,6 @@ private:
         Callable displayFunc(multiDisplayDict[mddKeys[i]]);
         displayFunc.apply(noarg);
       }
-      std::cout << "here4" << std::endl;
       
       // Call python-specified pre-render function if it exists    
       if (Library.hasKey("postRender")) {
@@ -496,9 +493,7 @@ private:
           PyErr_Print();
           //e.clear();
         }
-        std::cout << "here5" << std::endl;
       }
-      std::cout << "here6" << std::endl;
     }
     
     // --------------------------------
