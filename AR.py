@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import _AR
@@ -44,41 +46,45 @@ def imageAsArray(image):
     return array
     
 class ARSystem:
-    size = cv.Size(640,480)
-    image = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,3)
-    grayImage = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1)
-    maskImage = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1)
-    backprojectImage = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1)
-    modifiedImage = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,3)
-    hsvImage = cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,3)
+    #size = cv.Size(640,480)
+    size = (320,240)
+    cvsize = cv.Size(size[0],size[1])
+    image = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3)
+    grayImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1)
+    maskImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1)
+    backprojectImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1)
+    modifiedImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3)
+    hsvImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3)
     histDims = 32
     histRanges = [[50,110]]
     histogram = cv.CreateHist(1, [histDims],
                               CVtypes.CV_HIST_ARRAY,
                               histRanges, 1)
     hsvPlanes = [
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
         ]
     rgbPlanes = [
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
-        cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
+        cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1),
         ]
     work1 = []
     work3 = []
     cvStorage = []
     for i in range(10):
-        work1.append(cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,1))
-        work3.append(cv.CreateImage(size,CVtypes.IPL_DEPTH_8U,3))
+        work1.append(cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1))
+        work3.append(cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3))
         cvStorage.append(cv.CreateMemStorage(0))
 
     def __init__(self):
         _AR.Init(
-            #multiDisplayDict={'Data/markerboard-1-6.cfg':draw1},
+            width = self.size[0],
+            height = self.size[1],
             singleDisplayDict={0:draw2},
-            #initFunc=self.Init,
+            multiDisplayDict={'Data/markerboard-1-6.cfg':draw1},
+            initFunc=self.Init,
             preRender=self.preRender,
             render=self.render,
             )
@@ -87,9 +93,19 @@ class ARSystem:
         _AR.Run()
     def Init(self):
         glutKeyboardFunc(self.keyboard)
+        glutSpecialFunc(self.special)
+
+        capture = self.getCapture()
+        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,
+                              0.514000152471)
+        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,
+                              0.161806668155)
+        
 
     displayType = 'mask'
     def keyboard(self,key,x,y):
+        if ord(key) == 27:
+            sys.exit(0)
         key = key.lower()
         if key == 'h':
             self.queHistSnap = True
@@ -101,6 +117,26 @@ class ARSystem:
             self.displayType = 'gray'
         elif key == 'm':
             self.displayType = 'mask'
+    def special(self,key,x,y):
+        capture = self.getCapture()
+        b = cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS)
+        c = cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST)
+        if key == GLUT_KEY_DOWN:
+            b -= .1
+        elif key == GLUT_KEY_UP:
+            b += .1
+        elif key == GLUT_KEY_LEFT:
+            c -= .01
+        elif key == GLUT_KEY_RIGHT:
+            c += .01
+
+        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,b)
+        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,c)
+        b = cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS)
+        c = cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST)
+        print 'Brightness:',b
+        print 'Contrast:',c
+        print
 
     def renderFrame(self,frame):
         glEnable(GL_TEXTURE_2D);
@@ -139,14 +175,22 @@ class ARSystem:
         #print 'here'
 
     def getFrame(self):
-        p = _AR.GetImage()
+        p = _AR.GetFrame()
         ip = cast(c_void_p(p),
-                         POINTER(CVtypes.IplImage))
+                  POINTER(CVtypes.IplImage))
+        return ip
+    
+    def getCapture(self):
+        p = _AR.GetCapture()
+        ip = cast(c_void_p(p),
+                  POINTER(CVtypes.CvCapture))
         return ip
     
     def preRender(self):
         frame = self.getFrame()
-
+        capture = self.getCapture()
+        
+        
         size = cv.GetSize(frame)
         fsize = size.width,size.height
         size = cv.GetSize(self.image)
@@ -159,15 +203,23 @@ class ARSystem:
                       #CVtypes.CV_INTER_CUBIC,
                       )
 
-        cv.CvtColor(self.image, self.grayImage, CVtypes.CV_RGB2GRAY);
         cv.CvtColor(self.image, self.hsvImage, CVtypes.CV_RGB2HSV);
-        cv.Split( self.image,
-                  self.rgbPlanes[0], self.rgbPlanes[1],
-                  self.rgbPlanes[2], 0 )
         cv.Split( self.hsvImage,
                   self.hsvPlanes[0], self.hsvPlanes[1],
                   self.hsvPlanes[2], 0 )
+        cv.CvtColor(self.image, self.grayImage, CVtypes.CV_RGB2GRAY);
+        if 1:
+            #cv.EqualizeHist(self.hsvPlanes[0],self.hsvPlanes[0])
+            #cv.EqualizeHist(self.hsvPlanes[2],self.hsvPlanes[2])
+            #cv.Merge(self.hsvPlanes[0],self.hsvPlanes[1],
+            #         self.hsvPlanes[2],0, self.hsvImage)
+            #cv.CvtColor(self.hsvImage,self.image,CVtypes.CV_HSV2RGB)
+            cv.EqualizeHist(self.grayImage,self.grayImage)
+        cv.Split( self.image,
+                  self.rgbPlanes[0], self.rgbPlanes[1],
+                  self.rgbPlanes[2], 0 )
         cv.Copy(self.image,self.modifiedImage)
+        #cv.CvtColor(self.grayImage,self.modifiedImage,CVtypes.CV_GRAY2RGB)
         #self.backProject()
         #self.getContours()
 
@@ -264,7 +316,8 @@ class ARSystem:
                     for i,c in enumerate(contours):
                         #if i==(len(contours)-1): break
                         x0,y0,x1,y1 = c.x,c.y,c.width,c.height
-                        if ((x0>640) or (x1>640) or (y0>480) or (y1>480) or
+                        if ((x0>self.size[0]) or (x1>self.size[0]) or
+                            (y0>self.size[1]) or (y1>self.size[1]) or
                             (x0<=0) or (x1<=0) or (y0<=0) or (y1<=0) ):
                             x0,y0,x1,y1 = c0.x,c0.y,c0.width,c0.height
                             continue
@@ -298,7 +351,8 @@ class ARSystem:
                     y = e.center.y
                     center = cv.Point(int(x),int(y))
                     size = cv.Size(int(e.size.width),int(e.size.height))
-                    if size.width>640 or size.height>480: continue
+                    if size.width>self.size[0] or size.height>self.size[1]:
+                        continue
                     cx+=x;cy+=y
                     num += 1
                     angle = -e.angle
