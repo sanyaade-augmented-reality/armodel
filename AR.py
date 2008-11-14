@@ -47,7 +47,10 @@ def imageAsArray(image):
     
 class ARSystem:
     #size = cv.Size(640,480)
-    size = (320,240)
+    if 'viswall' in os.environ['HOSTNAME']:
+        size = (320,240)
+    else:
+        size = (640,480)
     cvsize = cv.Size(size[0],size[1])
     image = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,3)
     grayImage = cv.CreateImage(cvsize,CVtypes.IPL_DEPTH_8U,1)
@@ -312,7 +315,7 @@ class ARSystem:
                 bboxes = []
                 for contours in contourBlocks:
                     c0 = contours[0]
-                    bbox = [641,481,-1,-1]
+                    bbox = [self.size[0]+1,self.size[1]+1,-1,-1]
                     for i,c in enumerate(contours):
                         #if i==(len(contours)-1): break
                         x0,y0,x1,y1 = c.x,c.y,c.width,c.height
