@@ -96,11 +96,12 @@ class ARSystem:
         glutKeyboardFunc(self.keyboard)
         glutSpecialFunc(self.special)
 
-        capture = self.getCapture()
-        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,
-                              0.514000152471)
-        cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,
-                              0.161806668155)
+        if 'darwin' not in os.uname()[0].lower():
+            capture = self.getCapture()
+            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,
+                                  0.514000152471)
+            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,
+                                  0.161806668155)
         
 
     displayType = 'mask'
