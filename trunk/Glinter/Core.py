@@ -888,7 +888,7 @@ class Core(Option,Mouse,Keyboard,Callback):
         #self.repeat=glutDeviceGet(GLUT_DEVICE_IGNORE_KEY_REPEAT)
         #if self.repeat in (GLUT_KEY_REPEAT_ON,GLUT_KEY_REPEAT_DEFAULT):
         #    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF)
-        glutIgnoreKeyRepeat(1)
+        #glutIgnoreKeyRepeat(1)
     def Run(self):
         # Initialise all windows and start GLUT's mainloop
         self.glutInit()

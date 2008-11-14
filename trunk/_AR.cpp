@@ -85,8 +85,11 @@ public:
     add_varargs_method("Run",
                        &_AR_module::_AR_Run,
                        "Start AR mainloop");
-    add_keyword_method("GetImage",
-                       &_AR_module::_AR_GetImage,
+    add_keyword_method("GetFrame",
+                       &_AR_module::_AR_GetFrame,
+                       "Get current camera frame");
+    add_keyword_method("GetCapture",
+                       &_AR_module::_AR_GetCapture,
                        "Get current camera frame");
     add_keyword_method("Init",
                        &_AR_module::_AR_Init,
@@ -127,8 +130,12 @@ public:
   }
 
 private:
-  Object _AR_GetImage(const Tuple &a, const Dict &kws) {
+  Object _AR_GetFrame(const Tuple &a, const Dict &kws) {
     return (Int)((int)frame);
+  }
+  
+  Object _AR_GetCapture(const Tuple &a, const Dict &kws) {
+    return (Int)((int)capture);
   }
   
   Object _AR_Init(const Tuple &a, const Dict &kws) {
@@ -456,7 +463,7 @@ private:
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
     List mddKeys(multiDisplayDict.keys());
     for (int i=0; i<mddKeys.length(); i++) {
-      std::cout << "here2" << std::endl;
+      printf("here2 %d %d\n",frame->imageData,multiTracker[i]);
       int num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
       std::cout << "here3" << std::endl;
       if (num) {
