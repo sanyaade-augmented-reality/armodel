@@ -620,6 +620,11 @@ class Canvas3D(Widget,Lighted,Camera,Trackball):
         glScalef(self.zoom, self.zoom, self.zoom);
         for a in self.actors:
             a.Draw()
+        self.OnDraw()
+        #print 'asdf'
+
+    def OnDraw(self):
+        pass
 
 class Canvas2D(Widget):
     def __init__(self,parent=None,**kw):

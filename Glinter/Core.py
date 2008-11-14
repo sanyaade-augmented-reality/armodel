@@ -243,8 +243,8 @@ class Light:
         self.type_map[which][0] = color[0]
         self.type_map[which][1] = color[1]
         self.type_map[which][2] = color[2]
-    def Move(self,pnt):
-        for i in range(3):
+    def SetPosition(self,pnt):
+        for i in range(4):
             self.position[i] = pnt[i]
 
 class LightRack:
@@ -281,9 +281,9 @@ class LightRack:
     def SetLightColor(self,index,color,which=0):
         self.lights[index].SetColor(color,which)
         self.lights[index].Reset()
-    def MoveLight(self,index,pnt):
-        self.lights[index].Move(pnt)
-        self.lights[index].Reset()
+    def SetLightPosition(self,index,pnt):
+        self.lights[index].SetPosition(pnt)
+        #self.lights[index].Reset()
 
 
 ######################################################
@@ -584,9 +584,9 @@ class Trackball:
                   (2.0*x - w)/w,
                   (h - 2.0*y)/h)
         self.__quaternion = add_quats(quat,self.__quaternion)
-    def TrackballDraw(self):
+    def TrackballDraw(self,center=[0,0,0]):
         self.__init()
-        m = build_rotmatrix(self.__quaternion)
+        m = build_rotmatrix(self.__quaternion,center)
         glMultMatrixf(m)
     def GetTrackballMatrix(self):
         m = build_rotmatrix(self.__quaternion)
@@ -621,6 +621,9 @@ class Lighted:
     # Lighting mixin class. Handles the high-level
     #   lighting details
     __lights=None
+    def SetLightPosition(self,index,pos):
+        lr = self.LightRack()
+        lr.SetLightPosition(index,pos)
     def LightRack(self):
         if self.__lights is None:
             self.__lights=LightRack()
