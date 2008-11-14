@@ -47,7 +47,6 @@ static CvCapture* capture;
 static ARToolKitPlus::TrackerSingleMarker *singleTracker;
 static ARToolKitPlus::TrackerMultiMarker *multiTracker[100];
 static IplImage *frame;
-static IplImage *grayFrame;
 static CvSize *frameSize;
   
 static int getWidth() {
@@ -246,7 +245,6 @@ private:
     frameSize->width = getWidth();
     frameSize->height = getHeight();
     printf ("Width: %d Height: %d\n",frameSize->width,frameSize->height);
-    grayFrame = cvCreateImage(*frameSize,IPL_DEPTH_8U, 1);
     //////////////////////////////////////////////////////////////
     
 
@@ -254,6 +252,7 @@ private:
     // Initialize trackers
     //////////////////////////////////////////////////////////////
     // single-marker
+    printf("Initializing ARToolKitPlus markers\n");
     singleTracker = new ARToolKitPlus::TrackerSingleMarkerImpl<6,6,6,\
       ARToolKitPlus::PIXEL_FORMAT_RGB,16>(getWidth(),getHeight());
     // Setup tracker
@@ -270,14 +269,17 @@ private:
     List mddKeys(multiDisplayDict.keys());
     for(int i=0;i<mddKeys.length();i++) {
       String file(mddKeys[i]);
+      int w=getWidth(), h=getHeight();
       std::cout << "Initializing multi tracker: " << i
                 << " for file: " << file.as_string() 
                 << std::endl;
-      multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, \
-        ARToolKitPlus::PIXEL_FORMAT_RGB, 16>(getWidth(),getHeight());
+      //printf("Width: %d Height: %d\n",w,h);
+      //multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, ARToolKitPlus::PIXEL_FORMAT_RGB, 16>(w,h);
+      multiTracker[i] = new ARToolKitPlus::TrackerMultiMarkerImpl<6,6,6, 1, 16>(w,h);
+      const char* description = multiTracker[i]->getDescription();
+      printf("ARToolKitPlus compile-time information:\n%s\n\n", description);
       multiTracker[i]->init("data/LogitechPro4000.dat",
                             file.as_string().c_str(), 1.0f, 1000.0f);
-      //multiTracker[i]->setPatternWidth(60);
       multiTracker[i]->setBorderWidth(0.125f);
       multiTracker[i]->setThreshold((int)((Int)Library["threshold"]));
       multiTracker[i]->setPoseEstimator(ARToolKitPlus::POSE_ESTIMATOR_RPP);
@@ -386,8 +388,6 @@ private:
     ///////////////////////////////
     // Image preprocessing
     
-    //cvCvtColor(frame, grayFrame, CV_RGBA2GRAY);
-
     // Call python-specified pre-render function if it exists    
     if (Library.hasKey("preRender")) {
       if (getVerbosity()>0) {
@@ -463,8 +463,9 @@ private:
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
     List mddKeys(multiDisplayDict.keys());
     for (int i=0; i<mddKeys.length(); i++) {
+      int num = 0;
       printf("here2 %d %d\n",frame->imageData,multiTracker[i]);
-      int num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
+      num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
       std::cout << "here3" << std::endl;
       if (num) {
         glMatrixMode(GL_PROJECTION);
