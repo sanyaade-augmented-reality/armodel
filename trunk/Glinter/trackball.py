@@ -117,7 +117,7 @@ def normalize_quat( q ):
     for i in range(4):
         q[i]/=mag
 
-def build_rotmatrix( q ):
+def build_rotmatrix( q, trans=[0,0,0] ):
 ##    print 'quat to mat',q
     m = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
     m[0][0] = 1.0 - 2.0 * (q[1] * q[1] + q[2] * q[2])
@@ -135,9 +135,9 @@ def build_rotmatrix( q ):
     m[2][2] = 1.0 - 2.0 * (q[1] * q[1] + q[0] * q[0])
     m[2][3] = 0.0
 
-    m[3][0] = 0.0
-    m[3][1] = 0.0
-    m[3][2] = 0.0
+    m[3][0] = trans[0]
+    m[3][1] = trans[1]
+    m[3][2] = trans[2]
     m[3][3] = 1.0
 
     return m
