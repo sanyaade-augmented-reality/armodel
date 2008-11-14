@@ -11,10 +11,17 @@ import numpy
 
 def draw1():
     glColor(0,1,0)
+
+    sphereSize = 20
     glPushMatrix()
-    glTranslate(0,0,10)
-    glutSolidSphere(10,10,10)
-    glutSolidCube(10)
+    glTranslate(0,0,sphereSize)
+    glutSolidSphere(10,10,sphereSize)
+    glPopMatrix()
+
+    cubeSize = 20
+    glPushMatrix()
+    glTranslate(20,0,cubeSize)
+    glutSolidCube(cubeSize)
     glPopMatrix()
 
 def draw2():
@@ -98,10 +105,12 @@ class ARSystem:
 
         if 'darwin' not in os.uname()[0].lower():
             capture = self.getCapture()
-            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,
-                                  0.514000152471)
-            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,
-                                  0.161806668155)
+            b=0.213794155745
+            c=0.131609063828
+            #cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,0.514000152471)
+            #cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,0.161806668155)
+            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS,b)
+            cv.SetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST,c)
         
 
     displayType = 'mask'
