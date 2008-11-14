@@ -192,6 +192,17 @@ class ARSystem:
         frame = self.getFrame()
         capture = self.getCapture()
         
+        #if 'darwin' in os.uname()[0].lower():
+        if 0:
+            settings = [
+                cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_FOURCC),
+                cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_BRIGHTNESS),
+                cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_CONTRAST),
+                cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_SATURATION),
+                cv.GetCaptureProperty(capture,CVtypes.CV_CAP_PROP_HUE),
+                ]
+            print settings
+            
         
         size = cv.GetSize(frame)
         fsize = size.width,size.height
