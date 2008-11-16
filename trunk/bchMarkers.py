@@ -29,6 +29,7 @@ def getMarker(index):
     bbox = (topLeft[0],topLeft[1],bottomRight[0],bottomRight[1])
             
     mImage = allImage.crop(bbox)
+    mImage.load()
 
     return mImage
 
