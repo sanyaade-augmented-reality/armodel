@@ -62,5 +62,6 @@ class MarkerPanel:
             
 
 if __name__=='__main__':
-    mp = MarkerPanel([1,2,3,4,5,6])
+    markers = eval(sys.argv[1])
+    mp = MarkerPanel(markers)
     mp.mainImage.show()
