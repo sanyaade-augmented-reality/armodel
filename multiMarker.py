@@ -5,6 +5,22 @@ import Image
 
 from bchMarkers import getMarker
 
+configHead = """# produced by multiMarker.py
+
+# number of markers
+6
+"""
+
+markerText = """
+# marker %s
+%s
+40.0
+0.0 0.0
+ 1.0000  0.0000 0.0000  %s
+ 0.0000  1.0000 0.0000  %s
+ 0.0000  0.0000 1.0000  0.000
+"""
+
 class MarkerPanel:
     # multi-marker panel with 6 markers on it
     size = (1100,850)
@@ -59,9 +75,28 @@ class MarkerPanel:
                 point = tuple(map(int,point))
                 mainImage.paste(mImage,point)
                 mIndex += 1
-            
+        fnameRoot = '%s_%s_%s_%s_%s_%s'%tuple(markers)
+        mainImage.save(fnameRoot+'.jpg')
+
+        config = configHead
+        trans = [
+            [-80,40],[0,40],[80,40],
+            [-80,-40],[0,-40],[80,-40],
+            ]
+        for i,mId in enumerate(markers):
+            x,y = map(float,trans[i])
+            config += markerText%(mId,mId,x,y)
+
+        fp = open(os.path.join('data',fnameRoot+'.cfg'),'w')
+        fp.write(config)
+        fp.close()
+        
 
 if __name__=='__main__':
     markers = eval(sys.argv[1])
-    mp = MarkerPanel(markers)
-    mp.mainImage.show()
+    if type(markers[0]) is type(1):
+        mp = MarkerPanel(markers)
+    else:
+        for mlist in markers:
+            mp = MarkerPanel(mlist)
+    #mp.mainImage.show()
