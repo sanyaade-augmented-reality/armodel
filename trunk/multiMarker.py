@@ -68,25 +68,25 @@ class MarkerPanel:
             secondRow[1] = [firstRow[1][0],secondRow[0][1]]
             firstRow[2] = [firstRow[1][0]+sw,firstRow[0][1]]
             secondRow[2] = [firstRow[2][0],secondRow[0][1]]
+
         mIndex = 0
+        config = configHead
+        trans = [] # transforms for config file
         for row in positions:
             for point in row:
                 mImage = mImages[mIndex]
-                point = tuple(map(int,point))
-                mainImage.paste(mImage,point)
+                ipoint = tuple(map(int,point))
+                mainImage.paste(mImage,ipoint)
+                # setup config info
+                x = (point[0]+hsize) - cx
+                y = cy - (point[1]+hsize) 
+                config += markerText%(markers[mIndex],markers[mIndex],x,y)
+
                 mIndex += 1
         fnameRoot = '%s_%s_%s_%s_%s_%s'%tuple(markers)
         mainImage.save(fnameRoot+'.jpg')
 
-        config = configHead
-        trans = [
-            [-80,40],[0,40],[80,40],
-            [-80,-40],[0,-40],[80,-40],
-            ]
-        for i,mId in enumerate(markers):
-            x,y = map(float,trans[i])
-            config += markerText%(mId,mId,x,y)
-
+        # save config file
         fp = open(os.path.join('data',fnameRoot+'.cfg'),'w')
         fp.write(config)
         fp.close()

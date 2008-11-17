@@ -34,4 +34,5 @@ def getMarker(index):
     return mImage
 
 if __name__=='__main__':
-    getMarker(int(sys.argv[1]) if len(sys.argv)>1 else 0)
+    m = getMarker(int(sys.argv[1]) if len(sys.argv)>1 else 0)
+    m.show()
