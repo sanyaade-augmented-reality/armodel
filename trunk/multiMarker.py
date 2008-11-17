@@ -14,7 +14,7 @@ configHead = """# produced by multiMarker.py
 markerText = """
 # marker %s
 %s
-40.0
+%s
 0.0 0.0
  1.0000  0.0000 0.0000  %s
  0.0000  1.0000 0.0000  %s
@@ -69,18 +69,27 @@ class MarkerPanel:
             firstRow[2] = [firstRow[1][0]+sw,firstRow[0][1]]
             secondRow[2] = [firstRow[2][0],secondRow[0][1]]
 
+        cx,cy = size[0]/2,size[1]/2
         mIndex = 0
         config = configHead
-        trans = [] # transforms for config file
-        for row in positions:
-            for point in row:
+        trans = [
+            [ [-27.75,16.125],[0.0,16.125],[27.75,16.125] ],
+            [ [-27.75,-16.125],[0.0,-16.125],[27.75,-16.125] ],
+            ] # transforms for config file
+        for i,row in enumerate(positions):
+            for j,point in enumerate(row):
                 mImage = mImages[mIndex]
                 ipoint = tuple(map(int,point))
                 mainImage.paste(mImage,ipoint)
                 # setup config info
-                x = (point[0]+hsize) - cx
-                y = cy - (point[1]+hsize) 
-                config += markerText%(markers[mIndex],markers[mIndex],x,y)
+                if 0:
+                    x = (point[0]+hsize) - cx
+                    y = cy - (point[1]+hsize)
+                else:
+                    x,y = trans[i][j]
+                #print point,cx,cy,x,y
+                config += markerText%(markers[mIndex],markers[mIndex],
+                                      16.125,x,y)
 
                 mIndex += 1
         fnameRoot = '%s_%s_%s_%s_%s_%s'%tuple(markers)
