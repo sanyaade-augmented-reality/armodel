@@ -44,8 +44,16 @@ static double identTrans[3][4] = { {1,0,0,0},
                                    {0,0,1,0} };
 
 static CvCapture* capture;
+static int frameNumber;
+
+#define MAXMULTI 100
 static ARToolKitPlus::TrackerSingleMarker *singleTracker;
-static ARToolKitPlus::TrackerMultiMarker *multiTracker[100];
+static ARToolKitPlus::TrackerMultiMarker *multiTracker[MAXMULTI];
+static int lastMultiSet[MAXMULTI];
+static ARFloat lastMultiProj[MAXMULTI][16];
+static ARFloat lastMultiModel[MAXMULTI][16];
+static int freshness[MAXMULTI];
+
 static IplImage *frame;
 static CvSize *frameSize;
   
@@ -63,6 +71,20 @@ static void setHeight(int height) {
 }
 static List getMultiFileList() {
   return (List)Library["multiFile"];
+}
+static void setLastMultiProj(int mindex, ARFloat *matrix) {
+  int i;
+  lastMultiSet[mindex] = 1;
+  for(i=0;i<16;i++) {
+    lastMultiProj[mindex][i] = matrix[i];
+  }
+}
+static void setLastMultiModel(int mindex, ARFloat *matrix) {
+  int i;
+  lastMultiSet[mindex] = 1;
+  for(i=0;i<16;i++) {
+    lastMultiModel[mindex][i] = matrix[i];
+  }
 }
 
 class _ARLogger : public ARToolKitPlus::Logger
@@ -241,6 +263,7 @@ private:
     if( !capture ) {
       throw Exception("Init: Unable to set up AR camera.");
     }
+    frameNumber = 0;
     frameSize = new CvSize();
     frameSize->width = getWidth();
     frameSize->height = getHeight();
@@ -383,7 +406,7 @@ private:
     if( !frame ) {
       throw Exception("Camera frame is null..");
     }
-
+    frameNumber += 1;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     ///////////////////////////////
     // Image preprocessing
@@ -465,37 +488,55 @@ private:
     for (int i=0; i<mddKeys.length(); i++) {
       int num = 0;
       num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
+      ARFloat *proj,*model;
+      //Callable displayFunc(multiDisplayDict[mddKeys[i]]);
       if (num) {
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(multiTracker[i]->getProjectionMatrix());
-        if (0) {
-          printf("\n%d good Markers found and used for pose estimation.\nPose-Matrix:\n  ", num);
+        //glMatrixMode(GL_PROJECTION);
+        proj = (ARFloat *)multiTracker[i]->getProjectionMatrix();
+        //glLoadMatrixf(proj);
+        setLastMultiProj(i,proj);
+        if (getVerbosity()>0) {
+          printf("\n%d good Markers found and used for pose estimation."
+                 "\nPose-Matrix:\n  ", num);
           for(int j=0; j<16; j++)
             printf("%.2f  %s", multiTracker[i]->getModelViewMatrix()[j],
                    (j%4==3)?"\n  " : "");
         }
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(multiTracker[i]->getModelViewMatrix());
-        Callable displayFunc(multiDisplayDict[mddKeys[i]]);
-        displayFunc.apply(noarg);
+        //glMatrixMode(GL_MODELVIEW);
+        model = (ARFloat *)multiTracker[i]->getModelViewMatrix();
+        //glLoadMatrixf(model);
+        setLastMultiModel(i,model);
+
+        freshness[i] = frameNumber;
+        //displayFunc.apply(noarg);
       }
       
-      // Call python-specified pre-render function if it exists    
-      if (Library.hasKey("postRender")) {
-        if (getVerbosity()>0) {
-          std::cout << "Calling python init func" << std::endl;
-        }
-        Callable postRender(Library["postRender"]);
-        try {
-          postRender.apply(noarg);
-        } catch  (Exception &e){
-          std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
-          PyErr_Print();
-          //e.clear();
+    }
+    for (int i=0;i<mddKeys.length();i++) {
+      Callable displayFunc(multiDisplayDict[mddKeys[i]]);
+      if (lastMultiSet[i]) {
+        if ((frameNumber - freshness[i]) < 8) {
+          glMatrixMode(GL_PROJECTION);
+          glLoadMatrixf(lastMultiProj[i]);
+        
+          glMatrixMode(GL_MODELVIEW);
+          glLoadMatrixf(lastMultiModel[i]);
+          displayFunc.apply(noarg);
         }
       }
     }
     
+    // Call python-specified pre-render function if it exists    
+    if (Library.hasKey("postRender")) {
+      Callable postRender(Library["postRender"]);
+      try {
+        postRender.apply(noarg);
+      } catch  (Exception &e){
+        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
+        PyErr_Print();
+        //e.clear();
+      }
+    }
     // --------------------------------
     
 
@@ -506,16 +547,6 @@ private:
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
-
-    // If we can't see the multi-marker palette, just draw the found
-    // single-marker wand
-    /*
-      if ((tracker.GetMultiErr() < 0) || (tracker.GetMultiErr() > 100.0 )) {
-      drawSingle();
-      argSwapBuffers();
-      return;
-      }
-    */
 
     drawMulti();
     drawSingle();
