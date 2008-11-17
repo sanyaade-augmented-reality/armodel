@@ -257,7 +257,7 @@ private:
       ARToolKitPlus::PIXEL_FORMAT_RGB,16>(getWidth(),getHeight());
     // Setup tracker
     singleTracker->setLogger(&logger);
-    singleTracker->init("Data/LogitechPro4000.dat", 1.0f, 1000.0f);
+    singleTracker->init("data/LogitechPro4000.dat", 1.0f, 10000.0f);
     singleTracker->setPatternWidth(60);
     singleTracker->setBorderWidth(0.125f);
     singleTracker->setThreshold((int)((Int)Library["threshold"]));
@@ -278,7 +278,7 @@ private:
       const char* description = multiTracker[i]->getDescription();
       printf("ARToolKitPlus compile-time information:\n%s\n\n", description);
       int initVal = multiTracker[i]->init("data/LogitechPro4000.dat",
-                            file.as_string().c_str(), 1.0f, 1000.0f);
+                            file.as_string().c_str(), 1.0f, 10000.0f);
       printf("Init return value: %d\n",initVal); 
       multiTracker[i]->setBorderWidth(0.125f);
       multiTracker[i]->setThreshold((int)((Int)Library["threshold"]));
