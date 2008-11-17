@@ -86,6 +86,39 @@ static void setLastMultiModel(int mindex, ARFloat *matrix) {
     lastMultiModel[mindex][i] = matrix[i];
   }
 }
+#define GETR(_R_,_I_,_J_) _R_[_I_+4*_J_]
+static void rot2quat(ARFloat *rot, ARFloat *quat) {
+  ARFloat a,b,c,d,oo4a,val,r01r02,r01r12,r02r12;
+  
+  a = sqrt(GETR(rot,0,0) + GETR(rot,1,1) + GETR(rot,2,2)+1)*.5;
+  if (a != 0) {
+    oo4a = 1/(4*a);
+    b = (GETR(rot,2,1) - GETR(rot,1,2))*oo4a;
+    c = (GETR(rot,0,2) - GETR(rot,2,0))*oo4a;
+    d = (GETR(rot,1,0) - GETR(rot,0,1))*oo4a;
+  } else {
+    r01r02 = GETR(rot,0,1)*GETR(rot,0,1)*GETR(rot,0,2)*GETR(rot,0,2);
+    r01r12 = GETR(rot,0,1)*GETR(rot,0,1)*GETR(rot,1,2)*GETR(rot,1,2);
+    r02r12 = GETR(rot,0,2)*GETR(rot,0,2)*GETR(rot,1,2)*GETR(rot,1,2);
+    //printf("%.2f %.2f %.2f \n",r01r02,r01r12,r02r12);
+    val = 1/sqrt(r01r02+r01r12+r02r12);
+    b = GETR(rot,0,2)*GETR(rot,0,1)*val;
+    c = GETR(rot,0,1)*GETR(rot,1,2)*val;
+    d = GETR(rot,0,2)*GETR(rot,1,2)*val;
+  }
+  quat[0] = a;
+  quat[1] = b;
+  quat[2] = c;
+  quat[3] = d;
+}
+static ARFloat quatDist(ARFloat *q0, ARFloat *q1) {
+  ARFloat a,b,c,d;
+  a = q0[0]-q1[0];
+  b = q0[0]-q1[0];
+  c = q0[0]-q1[0];
+  d = q0[0]-q1[0];
+  return sqrt(a*a+b*b+c*c+d*d);
+}
 
 class _ARLogger : public ARToolKitPlus::Logger
 {
@@ -111,7 +144,13 @@ public:
                        "Get current camera frame");
     add_keyword_method("GetCapture",
                        &_AR_module::_AR_GetCapture,
-                       "Get current camera frame");
+                       "Get camera capture object");
+    add_keyword_method("GetMultiMV",
+                       &_AR_module::_AR_GetMultiMV,
+                       "Get multi-marker modelview matrix");
+    add_keyword_method("GetSingleMV",
+                       &_AR_module::_AR_GetSingleMV,
+                       "Get single-marker modelview matrix");
     add_keyword_method("Init",
                        &_AR_module::_AR_Init,
                        "Initialize the AR module");
@@ -158,6 +197,15 @@ private:
   Object _AR_GetCapture(const Tuple &a, const Dict &kws) {
     return (Int)((int)capture);
   }
+  
+  Object _AR_GetSingleMV(const Tuple &a, const Dict &kws) {
+    return (Int)((int)capture);
+  }
+  
+  Object _AR_GetMultiMV(const Tuple &a, const Dict &kws) {
+    return (Int)((int)capture);
+  }
+  
   
   Object _AR_Init(const Tuple &a, const Dict &kws) {
     //////////////////////////////////////////////////////////////
@@ -413,9 +461,6 @@ private:
     
     // Call python-specified pre-render function if it exists    
     if (Library.hasKey("preRender")) {
-      if (getVerbosity()>0) {
-        std::cout << "Calling python init func" << std::endl;
-      }
       Callable preRender(Library["preRender"]);
       try {
         preRender.apply(noarg);
@@ -430,9 +475,6 @@ private:
     // Draw Image
     // Call python-specified pre-render function if it exists    
     if (Library.hasKey("render")) {
-      if (getVerbosity()>0) {
-        std::cout << "Calling python init func" << std::endl;
-      }
       Callable render(Library["render"]);
       try {
         render.apply(noarg);
@@ -485,6 +527,7 @@ private:
     // Multi-marker tracking
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
     List mddKeys(multiDisplayDict.keys());
+    ARFloat quat[4],lquat[4],qds;
     for (int i=0; i<mddKeys.length(); i++) {
       int num = 0;
       num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
@@ -504,8 +547,26 @@ private:
         }
         //glMatrixMode(GL_MODELVIEW);
         model = (ARFloat *)multiTracker[i]->getModelViewMatrix();
-        //glLoadMatrixf(model);
-        setLastMultiModel(i,model);
+        rot2quat(model,quat);
+        if (0) {
+          for(int j=0; j<4; j++)
+            printf("%.2f ", quat[j]);
+          printf("\n");
+        } else if (0) {
+        }
+        if (0) {
+          if (lastMultiSet[i]) {
+            rot2quat(lastMultiModel[i],lquat);
+            qds = quatDist(quat,lquat);
+            if (qds>0.02) {
+              printf ("Quaternion distance %.2f.. Resetting MV\n ",qds);
+              setLastMultiModel(i,model);
+            }
+          }
+        } else{
+          //glLoadMatrixf(model);
+          setLastMultiModel(i,model);
+        }
 
         freshness[i] = frameNumber;
         //displayFunc.apply(noarg);

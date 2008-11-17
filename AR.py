@@ -91,14 +91,17 @@ class ARSystem:
             width = self.size[0],
             height = self.size[1],
             singleDisplayDict={0:draw2},
-            multiDisplayDict={'data/1_2_3_4_5_6.cfg':draw1,
-                              'data/7_8_9_10_11_12.cfg':draw1,
-                              'data/13_14_15_16_17_18.cfg':draw1,
-                              'data/19_20_21_22_23_24.cfg':draw1,
-                              },
+            multiDisplayDict={
+              'data/1_2_3_4_5_6.cfg':draw1,
+              'data/7_8_9_10_11_12.cfg':draw1,
+              'data/13_14_15_16_17_18.cfg':draw1,
+              'data/19_20_21_22_23_24.cfg':draw1,
+              #'data/markerboard1_24.cfg':draw1,
+            },
             initFunc=self.Init,
             preRender=self.preRender,
             render=self.render,
+            verbosity=0,
             )
 
     def Run(self):
