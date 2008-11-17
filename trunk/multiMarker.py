@@ -99,13 +99,80 @@ class MarkerPanel:
         fp = open(os.path.join('data',fnameRoot+'.cfg'),'w')
         fp.write(config)
         fp.close()
+
+def mb1_24():
+    msize = 53
+    ms2 = msize/2
+    horCentGap = 35
+    hcg = horCentGap/2
+    verCentGap = 34
+    vcg = verCentGap/2
+    horGap = 34
+    verGap = 49
+    topLeft = [-hcg-msize-horGap-msize-horGap-ms2,vcg+msize+verGap+ms2,7]
+    rowOne = [
+        topLeft,
+        [topLeft[0]+msize+horGap, topLeft[1],8],
+        [topLeft[0]+2*msize+2*horGap, topLeft[1],9],
+#         [topLeft[0]+3*msize+2*horGap+horCentGap,topLeft[1],19],
+#         [topLeft[0]+4*msize+3*horGap+horCentGap,topLeft[1],20],
+#         [topLeft[0]+4*msize+3*horGap+horCentGap,topLeft[1],21],
+        [hcg+ms2,topLeft[1],19],
+        [hcg+msize+horGap+ms2,topLeft[1],20],
+        [hcg+2*msize+2*horGap+ms2,topLeft[1],21],
+        ]
+    rowTwo = [
+        [rowOne[0][0],rowOne[0][1]-msize-verGap,10],
+        [rowOne[1][0],rowOne[1][1]-msize-verGap,11],
+        [rowOne[2][0],rowOne[2][1]-msize-verGap,12],
+        [rowOne[3][0],rowOne[3][1]-msize-verGap,22],
+        [rowOne[4][0],rowOne[4][1]-msize-verGap,23],
+        [rowOne[5][0],rowOne[5][1]-msize-verGap,24],
+        ]
+    rowThree = [
+        [rowTwo[0][0],-vcg-ms2,1],
+        [rowTwo[1][0],-vcg-ms2,2],
+        [rowTwo[2][0],-vcg-ms2,3],
+        [rowTwo[3][0],-vcg-ms2,13],
+        [rowTwo[4][0],-vcg-ms2,14],
+        [rowTwo[5][0],-vcg-ms2,15],
+        ]
+    rowFour = [
+        [rowThree[0][0],rowThree[0][1]-msize-verGap,4],
+        [rowThree[1][0],rowThree[1][1]-msize-verGap,5],
+        [rowThree[2][0],rowThree[2][1]-msize-verGap,6],
+        [rowThree[3][0],rowThree[3][1]-msize-verGap,16],
+        [rowThree[4][0],rowThree[4][1]-msize-verGap,17],
+        [rowThree[5][0],rowThree[5][1]-msize-verGap,18],
+        ]
+    positions = [
+        rowOne,
+        rowTwo,
+        rowThree,
+        rowFour,
+        ]
+    config = configHead
+    for i,row in enumerate(positions):
+        for j,point in enumerate(row):
+            x,y,mId = point
+            config += markerText%(mId,mId,msize,x,y)
+
+    fnameRoot = 'markerboard1_24'
+    # save config file
+    fp = open(os.path.join('data',fnameRoot+'.cfg'),'w')
+    fp.write(config)
+    fp.close()
+            
         
 
 if __name__=='__main__':
-    markers = eval(sys.argv[1])
-    if type(markers[0]) is type(1):
-        mp = MarkerPanel(markers)
+    if 0:
+        markers = eval(sys.argv[1])
+        if type(markers[0]) is type(1):
+            mp = MarkerPanel(markers)
+        else:
+            for mlist in markers:
+                mp = MarkerPanel(mlist)
+        #mp.mainImage.show()
     else:
-        for mlist in markers:
-            mp = MarkerPanel(mlist)
-    #mp.mainImage.show()
+        mb1_24()
