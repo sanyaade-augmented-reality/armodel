@@ -49,9 +49,14 @@ static int frameNumber;
 #define MAXMULTI 100
 static ARToolKitPlus::TrackerSingleMarker *singleTracker;
 static ARToolKitPlus::TrackerMultiMarker *multiTracker[MAXMULTI];
+static int numMultiModels;
 static int lastMultiSet[MAXMULTI];
 static ARFloat lastMultiProj[MAXMULTI][16];
-static ARFloat lastMultiModel[MAXMULTI][16];
+static ARFloat lastMultiMV[MAXMULTI][16];
+static int currentMultiSet[MAXMULTI];
+static ARFloat currentMultiProj[MAXMULTI][16];
+static ARFloat currentMultiMV[MAXMULTI][16];
+static ARFloat bestMultiMV[16];
 static int freshness[MAXMULTI];
 
 static IplImage *frame;
@@ -79,45 +84,112 @@ static void setLastMultiProj(int mindex, ARFloat *matrix) {
     lastMultiProj[mindex][i] = matrix[i];
   }
 }
-static void setLastMultiModel(int mindex, ARFloat *matrix) {
+static void setLastMultiMV(int mindex, ARFloat *matrix) {
   int i;
   lastMultiSet[mindex] = 1;
   for(i=0;i<16;i++) {
-    lastMultiModel[mindex][i] = matrix[i];
+    lastMultiMV[mindex][i] = matrix[i];
   }
 }
+static void setCurrentMultiProj(int mindex, ARFloat *matrix) {
+  int i;
+  currentMultiSet[mindex] = 1;
+  for(i=0;i<16;i++) {
+    currentMultiProj[mindex][i] = matrix[i];
+  }
+}
+static void setCurrentMultiMV(int mindex, ARFloat *matrix) {
+  int i;
+  currentMultiSet[mindex] = 1;
+  for(i=0;i<16;i++) {
+    currentMultiMV[mindex][i] = matrix[i];
+  }
+}
+
 #define GETR(_R_,_I_,_J_) _R_[_I_+4*_J_]
-static void rot2quat(ARFloat *rot, ARFloat *quat) {
+static void mv2quat(ARFloat *mv, ARFloat *quat) {
   ARFloat a,b,c,d,oo4a,val,r01r02,r01r12,r02r12;
   
-  a = sqrt(GETR(rot,0,0) + GETR(rot,1,1) + GETR(rot,2,2)+1)*.5;
+  a = sqrt(GETR(mv,0,0) + GETR(mv,1,1) + GETR(mv,2,2)+1)*.5;
   if (a != 0) {
     oo4a = 1/(4*a);
-    b = (GETR(rot,2,1) - GETR(rot,1,2))*oo4a;
-    c = (GETR(rot,0,2) - GETR(rot,2,0))*oo4a;
-    d = (GETR(rot,1,0) - GETR(rot,0,1))*oo4a;
+    b = (GETR(mv,2,1) - GETR(mv,1,2))*oo4a;
+    c = (GETR(mv,0,2) - GETR(mv,2,0))*oo4a;
+    d = (GETR(mv,1,0) - GETR(mv,0,1))*oo4a;
   } else {
-    r01r02 = GETR(rot,0,1)*GETR(rot,0,1)*GETR(rot,0,2)*GETR(rot,0,2);
-    r01r12 = GETR(rot,0,1)*GETR(rot,0,1)*GETR(rot,1,2)*GETR(rot,1,2);
-    r02r12 = GETR(rot,0,2)*GETR(rot,0,2)*GETR(rot,1,2)*GETR(rot,1,2);
+    r01r02 = GETR(mv,0,1)*GETR(mv,0,1)*GETR(mv,0,2)*GETR(mv,0,2);
+    r01r12 = GETR(mv,0,1)*GETR(mv,0,1)*GETR(mv,1,2)*GETR(mv,1,2);
+    r02r12 = GETR(mv,0,2)*GETR(mv,0,2)*GETR(mv,1,2)*GETR(mv,1,2);
     //printf("%.2f %.2f %.2f \n",r01r02,r01r12,r02r12);
     val = 1/sqrt(r01r02+r01r12+r02r12);
-    b = GETR(rot,0,2)*GETR(rot,0,1)*val;
-    c = GETR(rot,0,1)*GETR(rot,1,2)*val;
-    d = GETR(rot,0,2)*GETR(rot,1,2)*val;
+    b = GETR(mv,0,2)*GETR(mv,0,1)*val;
+    c = GETR(mv,0,1)*GETR(mv,1,2)*val;
+    d = GETR(mv,0,2)*GETR(mv,1,2)*val;
   }
   quat[0] = a;
   quat[1] = b;
   quat[2] = c;
   quat[3] = d;
 }
-static ARFloat quatDist(ARFloat *q0, ARFloat *q1) {
+static ARFloat quatDist3(ARFloat *q0, ARFloat *q1) {
+  ARFloat a,b,c,d;
+  b = q0[0]-q1[0];
+  c = q0[0]-q1[0];
+  d = q0[0]-q1[0];
+  return sqrt(b*b+c*c+d*d);
+}
+static ARFloat quatDist4(ARFloat *q0, ARFloat *q1) {
   ARFloat a,b,c,d;
   a = q0[0]-q1[0];
   b = q0[0]-q1[0];
   c = q0[0]-q1[0];
   d = q0[0]-q1[0];
   return sqrt(a*a+b*b+c*c+d*d);
+}
+static ARFloat getQuatAngleDistance(ARFloat *mv0, ARFloat *mv1) {
+  ARFloat quat0[4],quat1[4],ds;
+  mv2quat(mv0,quat0);
+  mv2quat(mv1,quat1);
+  ds = quat0[0]-quat1[0];
+  return sqrt(ds*ds);
+}
+static ARFloat getQuatDistance3(ARFloat *mv0, ARFloat *mv1) {
+  ARFloat quat0[4],quat1[4],ds3;
+  mv2quat(mv0,quat0);
+  mv2quat(mv1,quat1);
+  return quatDist3(quat0,quat1);
+}
+static ARFloat getQuatDistance4(ARFloat *mv0, ARFloat *mv1) {
+  ARFloat quat0[4],quat1[4],ds4;
+  mv2quat(mv0,quat0);
+  mv2quat(mv1,quat1);
+  return quatDist4(quat0,quat1);
+}
+static ARFloat getFrobNormDistance(ARFloat *mv0, ARFloat *mv1) {
+  ARFloat ret[16],ds=0;
+  for(int i=0;i<16;i++) {
+    ret[i] = mv0[i]-mv1[i];
+    ds += ret[i]*ret[i];
+  }
+  return sqrt(ds);
+}
+
+static int testDistances(int index, ARFloat *mv, ARFloat *values) {
+  ARFloat ad,q3d,q4d,fnd; 
+  ARFloat *last;
+  if (lastMultiSet[index]) {
+    last = lastMultiMV[index];
+    values[0] = getQuatAngleDistance(mv,last);
+    values[1] = getQuatDistance3(mv,last);
+    values[2] = getQuatDistance4(mv,last);
+    values[3] = getFrobNormDistance(mv,last);
+    if (0) {
+      printf("%d %.5f %.5f %.5f %.5f \n",index,
+             values[0],values[2],values[2],values[3]);
+    }
+    return 1;
+  }
+  return 0;
 }
 
 class _ARLogger : public ARToolKitPlus::Logger
@@ -203,7 +275,37 @@ private:
   }
   
   Object _AR_GetMultiMV(const Tuple &a, const Dict &kws) {
-    return (Int)((int)capture);
+    int index = -1;
+    List mvs = List();
+    String file(a[0]);
+    Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
+    List mddKeys(multiDisplayDict.keys());
+    for (int i=0; i<mddKeys.length(); i++) {
+      String f(mddKeys[i]);
+      if (f.as_string().compare(file.as_string())==0) {
+        index = i;
+        break;
+      }
+    }
+    if (lastMultiSet[index]) {
+      List mv = List();
+      for (int i=0; i<16; i++) {
+        Float val(lastMultiMV[index][i]);
+        mv.append(val);
+      }
+      mvs.append(mv);
+    } else mvs.append(Int(0));
+
+    if (currentMultiSet[index]) {
+      List mv = List();
+      for (int i=0; i<16; i++) {
+        Float val(currentMultiMV[index][i]);
+        mv.append(val);
+      } 
+      mvs.append(mv);
+    } else mvs.append(Int(0));
+    
+    return mvs;
   }
   
   
@@ -246,6 +348,15 @@ private:
       Callable render(kws["render"]);
       Library["render"] = render;
     }
+    // Pre-drawing python function to be called before drawing
+    // of markers
+    if(kws.hasKey("preDraw")) {
+      if (!kws["preDraw"].isCallable()) {
+        throw Exception("preDraw must be a callable object");
+      }
+      Callable preDraw(kws["preDraw"]);
+      Library["preDraw"] = preDraw;
+    }
     // Post-rendering python function to be called before rendering
     // happens
     if(kws.hasKey("postRender")) {
@@ -272,12 +383,17 @@ private:
       Library["singleDisplayDict"] = singleDisplayDict;
     }
     // Multi-marker configuration file(s)
+    numMultiModels = 0;
     Library["multiDisplayDict"] = Dict();
+    Library["mddKeys"] = List();
     if (kws.hasKey("multiDisplayDict")) {
       if (!kws["multiDisplayDict"].isDict())
         throw Exception("multiDisplayDict must be a dictionary");
       Dict multiDisplayDict(*kws["multiDisplayDict"]);
       Library["multiDisplayDict"] = multiDisplayDict;
+      List mddKeys(multiDisplayDict.keys());
+      Library["mddKeys"] = mddKeys;
+      numMultiModels = mddKeys.length();
     }
     // Threshold
     Int threshold(80);
@@ -337,7 +453,7 @@ private:
     singleTracker->setMarkerMode(ARToolKitPlus::MARKER_ID_BCH);
     // multi-marker
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
-    List mddKeys(multiDisplayDict.keys());
+    List mddKeys(Library["mddKeys"]);
     for(int i=0;i<mddKeys.length();i++) {
       String file(mddKeys[i]);
       int w=getWidth(), h=getHeight();
@@ -526,63 +642,58 @@ private:
     // --------------------------------
     // Multi-marker tracking
     Dict multiDisplayDict(*Library.getItem("multiDisplayDict"));
-    List mddKeys(multiDisplayDict.keys());
+    List mddKeys(Library["mddKeys"]);
     ARFloat quat[4],lquat[4],qds;
     for (int i=0; i<mddKeys.length(); i++) {
       int num = 0;
       num = multiTracker[i]->calc((unsigned char *)(frame->imageData));
       ARFloat *proj,*model;
-      //Callable displayFunc(multiDisplayDict[mddKeys[i]]);
       if (num) {
-        //glMatrixMode(GL_PROJECTION);
         proj = (ARFloat *)multiTracker[i]->getProjectionMatrix();
-        //glLoadMatrixf(proj);
-        setLastMultiProj(i,proj);
-        if (getVerbosity()>0) {
+        setCurrentMultiProj(i,proj);
+        if (getVerbosity()>1) {
           printf("\n%d good Markers found and used for pose estimation."
                  "\nPose-Matrix:\n  ", num);
           for(int j=0; j<16; j++)
             printf("%.2f  %s", multiTracker[i]->getModelViewMatrix()[j],
                    (j%4==3)?"\n  " : "");
         }
-        //glMatrixMode(GL_MODELVIEW);
         model = (ARFloat *)multiTracker[i]->getModelViewMatrix();
-        rot2quat(model,quat);
-        if (0) {
-          for(int j=0; j<4; j++)
-            printf("%.2f ", quat[j]);
-          printf("\n");
-        } else if (0) {
-        }
-        if (0) {
-          if (lastMultiSet[i]) {
-            rot2quat(lastMultiModel[i],lquat);
-            qds = quatDist(quat,lquat);
-            if (qds>0.02) {
-              printf ("Quaternion distance %.2f.. Resetting MV\n ",qds);
-              setLastMultiModel(i,model);
-            }
-          }
-        } else{
-          //glLoadMatrixf(model);
-          setLastMultiModel(i,model);
-        }
+        
+        //testDistances(i,model);
+
+        setCurrentMultiMV(i,model);
 
         freshness[i] = frameNumber;
-        //displayFunc.apply(noarg);
       }
       
     }
+
+    // Call python-specified pre-draw function if it exists    
+    if (Library.hasKey("preDraw")) {
+      Callable preDraw(Library["preDraw"]);
+      try {
+        preDraw.apply(noarg);
+      } catch  (Exception &e){
+        std::cout << std::endl << "!!!!!!!ERROR!!!!!!!! " << std::endl;
+        PyErr_Print();
+        //e.clear();
+      }
+    }
+
     for (int i=0;i<mddKeys.length();i++) {
       Callable displayFunc(multiDisplayDict[mddKeys[i]]);
-      if (lastMultiSet[i]) {
+      if (currentMultiSet[i]) {
         if ((frameNumber - freshness[i]) < 8) {
           glMatrixMode(GL_PROJECTION);
-          glLoadMatrixf(lastMultiProj[i]);
+          glLoadMatrixf(currentMultiProj[i]);
         
-          glMatrixMode(GL_MODELVIEW);
-          glLoadMatrixf(lastMultiModel[i]);
+          //glMatrixMode(GL_MODELVIEW);
+          //glLoadMatrixf(currentMultiMV[i]);
           displayFunc.apply(noarg);
+        } else {
+          currentMultiSet[i] = 0;
+          lastMultiSet[i] = 0;
         }
       }
     }
@@ -599,7 +710,14 @@ private:
       }
     }
     // --------------------------------
-    
+
+    // Set last multi MV
+    for (int i=0;i<mddKeys.length();i++) {
+      if (currentMultiSet[i]) {
+        setLastMultiMV(i,currentMultiMV[i]);
+        setLastMultiProj(i,currentMultiProj[i]);
+      }
+    }
 
     ///////////////////////////////
     // OpenGL prep
