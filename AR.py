@@ -51,7 +51,8 @@ def imageAsArray(image):
     buf = buffer(btype.from_address(image[0].imageData))
     array = numpy.frombuffer(buf,dtype=numpy.ubyte)
     return array
-    
+
+
 class ARSystem:
     size = (320,240)
     if 'darwin' in os.uname()[0].lower():
@@ -87,22 +88,105 @@ class ARSystem:
         cvStorage.append(cv.CreateMemStorage(0))
 
     def __init__(self):
+        self.dataFiles = df = [
+            'data/1_2_3_4_5_6.cfg',
+            'data/7_8_9_10_11_12.cfg',
+            'data/13_14_15_16_17_18.cfg',
+            'data/19_20_21_22_23_24.cfg',
+            ]
+        self.multiDisplayDict = mdd = {
+            df[0]: self.drawBottomLeft,
+            df[1]: self.drawTopLeft,
+            df[2]: self.drawBottomRight,
+            df[3]: self.drawTopRight,
+            }
         _AR.Init(
             width = self.size[0],
             height = self.size[1],
             singleDisplayDict={0:draw2},
-            multiDisplayDict={
-              'data/1_2_3_4_5_6.cfg':draw1,
-              'data/7_8_9_10_11_12.cfg':draw1,
-              'data/13_14_15_16_17_18.cfg':draw1,
-              'data/19_20_21_22_23_24.cfg':draw1,
-              #'data/markerboard1_24.cfg':draw1,
-            },
+            multiDisplayDict=mdd,
             initFunc=self.Init,
             preRender=self.preRender,
             render=self.render,
+            preDraw=self.preDraw,
             verbosity=0,
             )
+    def frobNorm(self,mat1,mat2):
+        ds = 0
+        for i in range(16):
+            d = mat1[i]-mat2[i]
+            ds += d*d
+        return numpy.sqrt(ds)
+    frameNumber = 0
+    def preDraw(self):
+        frameNumber += 1
+        self.mvMats = mvMats = [
+            _AR.GetMultiMV('data/1_2_3_4_5_6.cfg'),
+            _AR.GetMultiMV('data/7_8_9_10_11_12.cfg'),
+            _AR.GetMultiMV('data/13_14_15_16_17_18.cfg'),
+            _AR.GetMultiMV('data/19_20_21_22_23_24.cfg'),
+            ]
+        norms = []
+        found = False
+        for last,current in mvMats:
+            if frameNumber > 10:
+                
+            if current != 0:
+                
+            if last != 0:
+                norms.append(self.frobNorm(current,last))
+            else:
+                norms.append(None)
+        #print norms
+        
+        
+    markerLeftX = 30
+    def drawBottomLeft(self):
+        glColor(0,1,0)
+
+        sphereSize = 10
+        glPushMatrix()
+        glTranslate(0,0,sphereSize)
+        glutSolidSphere(10,10,sphereSize)
+        glPopMatrix()
+
+        cubeSize = 6
+        glPushMatrix()
+        glTranslate(20,0,cubeSize)
+        glutSolidCube(cubeSize)
+        glPopMatrix()
+
+        glColor(1,0,0)
+        glBegin(GL_QUADS)
+        glVertex3f(-self.markerLeftX,-self.markerLeftX,0)
+        glVertex3f(-self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,-self.markerLeftX,0)
+        glEnd()
+    def drawBottomRight(self):
+        glColor(0,1,0)
+        glBegin(GL_QUADS)
+        glVertex3f(-self.markerLeftX,-self.markerLeftX,0)
+        glVertex3f(-self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,-self.markerLeftX,0)
+        glEnd()
+    def drawTopLeft(self):
+        glColor(1,0,1)
+        glBegin(GL_QUADS)
+        glVertex3f(-self.markerLeftX,-self.markerLeftX,0)
+        glVertex3f(-self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,-self.markerLeftX,0)
+        glEnd()
+    def drawTopRight(self):
+        glColor(1,1,0)
+        glBegin(GL_QUADS)
+        glVertex3f(-self.markerLeftX,-self.markerLeftX,0)
+        glVertex3f(-self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,self.markerLeftX,0)
+        glVertex3f(self.markerLeftX,-self.markerLeftX,0)
+        glEnd()
 
     def Run(self):
         _AR.Run()
@@ -207,7 +291,8 @@ class ARSystem:
     def preRender(self):
         frame = self.getFrame()
         capture = self.getCapture()
-        
+        #print _AR.GetMultiMV('data/19_20_21_22_23_24.cfg')
+        #_AR.GetMultiMV('data/13_14_15_16_17_18.cfg')
         #if 'darwin' in os.uname()[0].lower():
         if 0:
             settings = [
