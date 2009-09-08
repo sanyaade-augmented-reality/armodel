@@ -130,8 +130,10 @@ class ARSystem:
         found = False
         for last,current in mvMats:
             if frameNumber > 10:
+                pass
                 
             if current != 0:
+                pass
                 
             if last != 0:
                 norms.append(self.frobNorm(current,last))

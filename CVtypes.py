@@ -4205,8 +4205,8 @@ cvComputeCorrespondEpilines = cfunc('cvComputeCorrespondEpilines', _cvDLL, None,
     ('correspondent_lines', POINTER(CvMat), 1), # CvMat* correspondent_lines
 )
 
-# Convert points to/from homogenious coordinates
-cvConvertPointsHomogenious = cfunc('cvConvertPointsHomogenious', _cvDLL, None,
+# Convert points to/from homogeneous coordinates
+cvConvertPointsHomogeneous = cfunc('cvConvertPointsHomogeneous', _cvDLL, None,
     ('src', POINTER(CvMat), 1), # const CvMat* src
     ('dst', POINTER(CvMat), 1), # CvMat* dst 
 )
@@ -6282,9 +6282,9 @@ cvComputeCorrespondEpilines.__doc__ = """void cvComputeCorrespondEpilines(const 
 For points in one image of stereo pair computes the corresponding epilines in the other image
 """
 
-cvConvertPointsHomogenious.__doc__ = """void cvConvertPointsHomogenious(const CvMat* src, CvMat* dst)
+cvConvertPointsHomogeneous.__doc__ = """void cvConvertPointsHomogeneous(const CvMat* src, CvMat* dst)
 
-Convert points to/from homogenious coordinates
+Convert points to/from homogeneous coordinates
 """
 
 cvNamedWindow.__doc__ = """int cvNamedWindow(const char* name, int flags)
