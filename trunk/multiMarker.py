@@ -166,7 +166,7 @@ def mb1_24():
         
 
 if __name__=='__main__':
-    if 0:
+    if 1:
         markers = eval(sys.argv[1])
         if type(markers[0]) is type(1):
             mp = MarkerPanel(markers)
