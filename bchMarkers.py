@@ -2,8 +2,8 @@ import Image
 import os,sys
 
 markerPath = os.path.join(
-    os.environ['HOME'],
-    'Development/ARToolKitPlus/id-markers/bch/'
+    os.environ['ARTKP'],
+    'id-markers/bch/'
     )
 
 allImage = Image.open(os.path.join(markerPath,'AllBchThinMarkers.png'))
